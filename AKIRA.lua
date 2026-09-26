@@ -1,84 +1,109 @@
 -- // ========================================== //
--- //   AKIRA SCRIPT - EGG PRICE & VALUE v4.7    //
--- //   FULL ANTI-BYPASS & SECURITY ENGINE       //
+-- //   AKIRA SCRIPT - ULTRA REBUILT v5.0        //
+-- //   CLEAN STABLE & OPTIMIZED ENGINE          //
 -- // ========================================== //
 
-local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
-local Workspace = game:GetService("Workspace")
-local RunService = game:GetService("RunService")
-local VirtualUser = game:GetService("VirtualUser")
-local TeleportService = game:GetService("TeleportService")
-local HttpService = game:GetService("HttpService")
-local GuiService = game:GetService("GuiService")
+local function getService(name)
+    local serv = game:GetService(name)
+    return cloneref and cloneref(serv) or serv
+end
+
+local Players = getService("Players")
+local TweenService = getService("TweenService")
+local UserInputService = getService("UserInputService")
+local Workspace = getService("Workspace")
+local RunService = getService("RunService")
+local VirtualUser = getService("VirtualUser")
+local TeleportService = getService("TeleportService")
+local HttpService = getService("HttpService")
+local GuiService = getService("GuiService")
 
 local LocalPlayer = Players.LocalPlayer
-local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
 
 -- ========================================================
--- CORE ANTI-BYPASS ENGINE (METATABLE HOOKING)
+-- 1. SECURITY & BYPASS MODULE (CLEAN METATABLE HOOKS)
 -- ========================================================
-local antiBypassActive = true
-local realWalkSpeed = 16
-local realJumpPower = 50
+local Security = {
+    Active = true,
+    SpoofedWalkSpeed = 16,
+    SpoofedJumpPower = 50
+}
 
-local function InitAntiBypass()
-    if hookmetamethod and getnamecallmethod and checkcaller then
-        -- 1. Anti-Kick & Remote Detection Bypass
-        local oldNamecall
-        oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
-            local method = getnamecallmethod()
-            local args = {...}
+local function InitSecurityEngine()
+    if not (hookmetamethod and getnamecallmethod and checkcaller) then return end
 
-            if not checkcaller() and antiBypassActive then
-                -- ទប់ស្កាត់ Client-Sided Kick
-                if method == "Kick" or method == "kick" then
-                    return nil
-                end
+    -- Safe __namecall Hooking (Anti-Kick & Remote Intercept)
+    local oldNamecall
+    oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
+        local method = getnamecallmethod()
 
-                -- ទប់ស្កាត់ការ Report / Flag តាម RemoteEvent របស់ហ្គេម
-                if method == "FireServer" and self:IsA("RemoteEvent") then
-                    local name = string.lower(self.Name)
-                    if string.find(name, "cheat") or string.find(name, "ban") or string.find(name, "detect") or string.find(name, "flag") or string.find(name, "report") then
+        if not checkcaller() and Security.Active then
+            local lowerMethod = string.lower(method)
+
+            -- ទប់ស្កាត់ Client-side Kick
+            if lowerMethod == "kick" then
+                return nil
+            end
+
+            -- ទប់ស្កាត់ការបញ្ជូនទិន្នន័យ Anti-Cheat / Report ទៅ Server
+            if lowerMethod == "fireserver" and typeof(self) == "Instance" and self:IsA("RemoteEvent") then
+                local remoteName = string.lower(self.Name)
+                local flaggedWords = {"ban", "cheat", "detect", "flag", "report", "exploit", "hack", "log", "security"}
+                for _, word in ipairs(flaggedWords) do
+                    if string.find(remoteName, word) then
                         return nil
                     end
                 end
             end
+        end
 
-            return oldNamecall(self, ...)
-        end)
+        return oldNamecall(self, ...)
+    end)
 
-        -- 2. Anti WalkSpeed & JumpPower Detection Bypass (Property Spoofing)
-        local oldIndex
-        oldIndex = hookmetamethod(game, "__index", function(self, key)
-            if not checkcaller() and antiBypassActive then
-                if tostring(key) == "WalkSpeed" and self:IsA("Humanoid") then
-                    return 16 -- បង្ហាញទៅ Anti-Cheat ថាដើរល្បឿនធម្មតា
-                elseif tostring(key) == "JumpPower" and self:IsA("Humanoid") then
-                    return 50 -- បង្ហាញថា Jump កម្ពស់ធម្មតា
+    -- Safe __index Hooking (WalkSpeed & JumpPower Spoofing)
+    local oldIndex
+    oldIndex = hookmetamethod(game, "__index", function(self, key)
+        if not checkcaller() and Security.Active and typeof(self) == "Instance" then
+            if self:IsA("Humanoid") then
+                local prop = tostring(key)
+                if prop == "WalkSpeed" then
+                    return Security.SpoofedWalkSpeed
+                elseif prop == "JumpPower" then
+                    return Security.SpoofedJumpPower
                 end
             end
-            return oldIndex(self, key)
-        end)
-    end
+        end
+        return oldIndex(self, key)
+    end)
 end
 
-pcall(InitAntiBypass)
+pcall(InitSecurityEngine)
 
 -- ========================================================
--- UI CREATION
+-- 2. SECURE GUI CONTAINER
 -- ========================================================
-local existingUI = PlayerGui:FindFirstChild("AkiraPremiumUI")
+local uiParent = nil
+if gethui then
+    uiParent = gethui()
+elseif (syn and syn.protect_gui) then
+    local pgui = Instance.new("Folder")
+    syn.protect_gui(pgui)
+    pgui.Parent = getService("CoreGui")
+    uiParent = pgui
+else
+    uiParent = LocalPlayer:WaitForChild("PlayerGui")
+end
+
+local existingUI = uiParent:FindFirstChild("AkiraSecureUI")
 if existingUI then existingUI:Destroy() end
 
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "AkiraPremiumUI"
+ScreenGui.Name = "AkiraSecureUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-ScreenGui.Parent = PlayerGui
+ScreenGui.Parent = uiParent
 
--- Main Frame
+-- Main Window
 local Main = Instance.new("Frame")
 Main.Name = "Main"
 Main.Size = UDim2.fromOffset(530, 360)
@@ -92,7 +117,6 @@ Main.ClipsDescendants = true
 Main.Parent = ScreenGui
 
 Instance.new("UICorner", Main).CornerRadius = UDim.new(0, 14)
-
 local MainStroke = Instance.new("UIStroke", Main)
 MainStroke.Color = Color3.fromRGB(255, 35, 60)
 MainStroke.Thickness = 1.8
@@ -115,7 +139,7 @@ Title.Position = UDim2.fromOffset(16, 0)
 Title.Size = UDim2.new(0.65, 0, 1, 0)
 Title.BackgroundTransparency = 1
 Title.RichText = true
-Title.Text = '<font color="rgb(255,35,60)">AKIRA</font> <font color="rgb(255,255,255)">SCRIPT</font> <font color="rgb(140,140,160)">[BYPASS v4.7]</font>'
+Title.Text = '<font color="rgb(255,35,60)">AKIRA</font> <font color="rgb(255,255,255)">SCRIPT</font> <font color="rgb(140,140,160)">[v5.0 REBUILT]</font>'
 Title.Font = Enum.Font.ArialBold
 Title.TextSize = 14
 Title.TextColor3 = Color3.new(1, 1, 1)
@@ -142,9 +166,7 @@ Sidebar.BorderSizePixel = 0
 local SideLayout = Instance.new("UIListLayout", Sidebar)
 SideLayout.Padding = UDim.new(0, 6)
 SideLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-
-local SidePadding = Instance.new("UIPadding", Sidebar)
-SidePadding.PaddingTop = UDim.new(0, 8)
+Instance.new("UIPadding", Sidebar).PaddingTop = UDim.new(0, 8)
 
 -- Content Area
 local ContentHolder = Instance.new("Frame", Main)
@@ -207,18 +229,9 @@ local function CreateTab(name)
     return Page
 end
 
-local FarmPage = CreateTab("Auto Farm")
-local SelectEggPage = CreateTab("Select Eggs")
-local SecurityPage = CreateTab("Bypass & Sec 🛡️")
-local UtilityPage = CreateTab("Utility")
-local MovementPage = CreateTab("Movement")
-local MiscPage = CreateTab("Misc")
-
-Pages["Auto Farm"].Visible = true
-TabButtons["Auto Farm"].BackgroundColor3 = Color3.fromRGB(255, 35, 60)
-TabButtons["Auto Farm"].TextColor3 = Color3.new(1, 1, 1)
-
--- Helpers
+-- ========================================================
+-- 3. UI ELEMENT HELPERS
+-- ========================================================
 local function AddToggle(parent, title, default, callback)
     local state = default or false
     local Frame = Instance.new("Frame", parent)
@@ -353,13 +366,21 @@ local function AddSlider(parent, title, min, max, default, callback)
 end
 
 -- ========================================================
--- DATABASE & ENGINE
+-- 4. DATABASE & ENGINE SYSTEMS
 -- ========================================================
+local FarmPage = CreateTab("Auto Farm")
+local SelectEggPage = CreateTab("Select Eggs")
+local SecurityPage = CreateTab("Security 🛡️")
+local UtilityPage = CreateTab("Utility")
+local MovementPage = CreateTab("Movement")
+
+Pages["Auto Farm"].Visible = true
+TabButtons["Auto Farm"].BackgroundColor3 = Color3.fromRGB(255, 35, 60)
+TabButtons["Auto Farm"].TextColor3 = Color3.new(1, 1, 1)
+
 local EggDatabase = {
     ["eternal"] = { Name = "Eternal Egg", Price = "5,000,000+", Color = Color3.fromRGB(150, 0, 255) },
-    ["enternal"] = { Name = "Eternal Egg", Price = "5,000,000+", Color = Color3.fromRGB(150, 0, 255) },
     ["divine"] = { Name = "Divine Egg", Price = "1,000,000+", Color = Color3.fromRGB(0, 230, 255) },
-    ["divan"] = { Name = "Divine Egg", Price = "1,000,000+", Color = Color3.fromRGB(0, 230, 255) },
     ["mythic"] = { Name = "Mythic Egg", Price = "250,000+", Color = Color3.fromRGB(255, 30, 60) },
     ["legendary"] = { Name = "Legendary Egg", Price = "50,000+", Color = Color3.fromRGB(255, 215, 0) },
     ["golden"] = { Name = "Golden Egg", Price = "25,000+", Color = Color3.fromRGB(255, 180, 0) },
@@ -379,7 +400,8 @@ local function GetEggDetails(objName)
 end
 
 local myBasePos = nil
-local farmSpeed = 45
+local farmSpeed = 35 -- Safe default speed
+local customEggInput = ""
 
 local SelectedEggs = {
     ["Eternal Egg"] = true,
@@ -392,29 +414,6 @@ local SelectedEggs = {
     ["Golden Egg"] = true
 }
 
-local customEggInput = ""
-
-local function MoveToTarget(targetPos)
-    local char = LocalPlayer.Character
-    local root = char and char:FindFirstChild("HumanoidRootPart")
-    if not root then return end
-
-    local distance = (root.Position - targetPos).Magnitude
-    local timeToReach = math.clamp(distance / farmSpeed, 0.05, 15)
-
-    local tweenInfo = TweenInfo.new(timeToReach, Enum.EasingStyle.Linear)
-    local tween = TweenService:Create(root, tweenInfo, {CFrame = CFrame.new(targetPos + Vector3.new(0, 1.5, 0))})
-    
-    tween:Play()
-    tween.Completed:Wait()
-end
-
-task.spawn(function()
-    local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-    local root = char:WaitForChild("HumanoidRootPart", 10)
-    if root then myBasePos = root.Position end
-end)
-
 local function IsEggWanted(name)
     name = string.lower(name)
     if customEggInput ~= "" and string.find(name, string.lower(customEggInput)) then
@@ -423,91 +422,44 @@ local function IsEggWanted(name)
     for eggName, isSelected in pairs(SelectedEggs) do
         if isSelected then
             local keyword = string.lower(string.split(eggName, " ")[1])
-            if string.find(name, keyword) or (keyword == "eternal" and string.find(name, "enternal")) or (keyword == "divine" and string.find(name, "divan")) then
-                return true
-            end
+            if string.find(name, keyword) then return true end
         end
     end
     return false
 end
 
--- ========================================================
--- SECURITY FUNCTIONS
--- ========================================================
-local antiStaffActive = false
-local antiFlingActive = false
-local nameProtectActive = false
-local antiVoidActive = true
+local function MoveToTarget(targetPos)
+    local char = LocalPlayer.Character
+    local root = char and char:FindFirstChild("HumanoidRootPart")
+    if not root then return end
 
-local function ServerHop()
-    local url = "https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100"
-    local success, response = pcall(function() return game:HttpGet(url) end)
-    if success and response then
-        local data = HttpService:JSONDecode(response)
-        if data and data.data then
-            for _, server in ipairs(data.data) do
-                if server.playing < server.maxPlayers and server.id ~= game.JobId then
-                    TeleportService:TeleportToPlaceInstance(game.PlaceId, server.id, LocalPlayer)
-                    return
-                end
-            end
-        end
-    end
-    LocalPlayer:Kick("Akira Guard: Exited safely!")
+    local distance = (root.Position - targetPos).Magnitude
+    local timeToReach = math.clamp(distance / farmSpeed, 0.1, 12)
+
+    local tweenInfo = TweenInfo.new(timeToReach, Enum.EasingStyle.Linear)
+    local tween = TweenService:Create(root, tweenInfo, {CFrame = CFrame.new(targetPos + Vector3.new(0, 1.5, 0))})
+    tween:Play()
+    tween.Completed:Wait()
 end
 
-local function CheckForStaff(player)
-    if not antiStaffActive or player == LocalPlayer then return end
-    pcall(function()
-        if game.CreatorType == Enum.CreatorType.Group and player:GetRankInGroup(game.CreatorId) >= 100 then
-            ServerHop()
-        elseif player.UserId == game.CreatorId then
-            ServerHop()
-        end
-    end)
-end
+-- ========================================================
+-- 5. TAB IMPLEMENTATION
+-- ========================================================
 
-Players.PlayerAdded:Connect(CheckForStaff)
-
--- Anti Void Protection
-RunService.Heartbeat:Connect(function()
-    if antiVoidActive and LocalPlayer.Character then
-        local root = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        if root and root.Position.Y < -50 and myBasePos then
-            root.Velocity = Vector3.zero
-            root.CFrame = CFrame.new(myBasePos + Vector3.new(0, 5, 0))
-        end
-    end
-end)
-
--- Anti Fling Loop
-RunService.Stepped:Connect(function()
-    if antiFlingActive and LocalPlayer.Character then
-        for _, otherPlayer in ipairs(Players:GetPlayers()) do
-            if otherPlayer ~= LocalPlayer and otherPlayer.Character then
-                for _, opPart in ipairs(otherPlayer.Character:GetDescendants()) do
-                    if opPart:IsA("BasePart") then
-                        opPart.CanCollide = false
-                    end
-                end
-            end
-        end
-    end
-end)
-
--- [TAB: AUTO FARM]
+-- [AUTO FARM]
 local fastRunFarm = false
-AddToggle(FarmPage, "Fast Run Farm (រត់លួចពង)", false, function(s)
+AddToggle(FarmPage, "Auto Farm (រត់ប្រមូលពង)", false, function(s)
     fastRunFarm = s
     if s then
         task.spawn(function()
             while fastRunFarm do
-                task.wait(0.15)
+                task.wait(0.2)
                 pcall(function()
                     local char = LocalPlayer.Character
                     local root = char and char:FindFirstChild("HumanoidRootPart")
                     if not root then return end
 
+                    -- Check If Player Has Egg
                     local hasEgg = false
                     for _, child in ipairs(char:GetChildren()) do
                         if child:IsA("Tool") or string.find(string.lower(child.Name), "egg") then
@@ -519,20 +471,21 @@ AddToggle(FarmPage, "Fast Run Farm (រត់លួចពង)", false, function(
                     if hasEgg then
                         if myBasePos then
                             MoveToTarget(myBasePos)
-                            task.wait(0.4)
+                            task.wait(0.5)
                         end
                     else
+                        -- Scan for Closest Wanted Egg Prompt
                         local closestPrompt = nil
-                        local shortestDist = math.huge
+                        local shortestDist = 500
 
                         for _, obj in ipairs(Workspace:GetDescendants()) do
                             if obj:IsA("ProximityPrompt") then
-                                local text = string.lower(obj.ActionText .. " " .. obj.ObjectText .. " " .. obj.Parent.Name)
-                                if string.find(text, "egg") and IsEggWanted(text) then
-                                    local part = obj.Parent
-                                    if part and part:IsA("BasePart") then
-                                        local dist = (root.Position - part.Position).Magnitude
-                                        if dist < shortestDist then
+                                local parent = obj.Parent
+                                if parent and parent:IsA("BasePart") then
+                                    local dist = (root.Position - parent.Position).Magnitude
+                                    if dist < shortestDist then
+                                        local promptText = string.lower(obj.ActionText .. " " .. obj.ObjectText .. " " .. parent.Name)
+                                        if string.find(promptText, "egg") and IsEggWanted(promptText) then
                                             shortestDist = dist
                                             closestPrompt = obj
                                         end
@@ -547,7 +500,7 @@ AddToggle(FarmPage, "Fast Run Farm (រត់លួចពង)", false, function(
                             if fireproximityprompt then
                                 fireproximityprompt(closestPrompt)
                             end
-                            task.wait(0.2)
+                            task.wait(0.25)
                         end
                     end
                 end)
@@ -556,263 +509,147 @@ AddToggle(FarmPage, "Fast Run Farm (រត់លួចពង)", false, function(
     end
 end)
 
-AddSlider(FarmPage, "Farm Speed (ល្បឿនរត់កាត់ដី)", 25, 80, 45, function(v)
+AddSlider(FarmPage, "Movement Speed (ល្បឿនផ្លាស់ទី)", 20, 60, 35, function(v)
     farmSpeed = v
 end)
 
-local instantPrompt = false
-AddToggle(FarmPage, "Instant Steal (ចុចលួចភ្លាមៗ)", false, function(s)
-    instantPrompt = s
-    if s then
-        for _, prompt in ipairs(Workspace:GetDescendants()) do
-            if prompt:IsA("ProximityPrompt") then prompt.HoldDuration = 0 end
-        end
-    end
-end)
-
-Workspace.DescendantAdded:Connect(function(descendant)
-    if instantPrompt and descendant:IsA("ProximityPrompt") then
-        descendant.HoldDuration = 0
-    end
-end)
-
-AddButton(FarmPage, "Set Current Spot as Base (កំណត់កន្លែងទុក)", function()
+AddButton(FarmPage, "Set Current Spot as Base (កន្លែងទម្លាក់ពង)", function()
     local char = LocalPlayer.Character
     local root = char and char:FindFirstChild("HumanoidRootPart")
-    if root then myBasePos = root.Position end
+    if root then
+        myBasePos = root.Position
+    end
 end)
 
--- [TAB: SELECT EGGS]
+-- [SELECT EGGS]
 for eggName, _ in pairs(SelectedEggs) do
     AddToggle(SelectEggPage, eggName, SelectedEggs[eggName], function(state)
         SelectedEggs[eggName] = state
     end)
 end
 
-local InputFrame = Instance.new("Frame", SelectEggPage)
-InputFrame.Size = UDim2.new(1, 0, 0, 50)
-InputFrame.BackgroundColor3 = Color3.fromRGB(24, 24, 34)
-InputFrame.BorderSizePixel = 0
-Instance.new("UICorner", InputFrame).CornerRadius = UDim.new(0, 8)
-
-local CustomBox = Instance.new("TextBox", InputFrame)
-CustomBox.Size = UDim2.new(1, -20, 1, -14)
-CustomBox.Position = UDim2.fromOffset(10, 7)
-CustomBox.BackgroundColor3 = Color3.fromRGB(18, 18, 24)
-CustomBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-CustomBox.PlaceholderText = "វាយឈ្មោះពងពិសេសផ្សេងទៀត..."
-CustomBox.PlaceholderColor3 = Color3.fromRGB(140, 140, 150)
-CustomBox.Font = Enum.Font.Arial
-CustomBox.TextSize = 12
-Instance.new("UICorner", CustomBox).CornerRadius = UDim.new(0, 6)
-
-CustomBox.FocusLost:Connect(function()
-    customEggInput = CustomBox.Text
+-- [SECURITY]
+AddToggle(SecurityPage, "Bypass Engine (Spoofing & Kick Block)", true, function(s)
+    Security.Active = s
 end)
 
--- [TAB: BYPASS & SECURITY 🛡️]
-AddToggle(SecurityPage, "Anti-Bypass (ទប់ស្កាត់ Kick/Detect)", true, function(s)
-    antiBypassActive = s
-end)
-
-AddToggle(SecurityPage, "Anti-Void (ការពារកុំឱ្យធ្លាក់ផែនដី)", true, function(s)
-    antiVoidActive = s
-end)
-
-AddToggle(SecurityPage, "Anti-Staff (ដូរ Server បើមាន Admin)", true, function(s)
-    antiStaffActive = s
-    if s then
-        for _, p in ipairs(Players:GetPlayers()) do CheckForStaff(p) end
-    end
-end)
-
-AddToggle(SecurityPage, "Anti-Fling (ការពារគេបុកឱ្យហោះ)", true, function(s)
-    antiFlingActive = s
-end)
-
-AddToggle(SecurityPage, "Name Protect (បិទបាំងឈ្មោះពិត)", false, function(s)
-    nameProtectActive = s
-    local char = LocalPlayer.Character
-    if char and char:FindFirstChild("Humanoid") then
-        char.Humanoid.DisplayName = s and "Protected_User" or LocalPlayer.DisplayName
-    end
-end)
-
-AddButton(SecurityPage, "Panic Button (បិទស្គ្រីប និង Reset ភ្លាម)", function()
-    fastRunFarm = false
-    ScreenGui:Destroy()
-end)
-
--- [TAB: UTILITY]
-local eggEspActive = false
-local function ClearAllEggESP()
-    for _, obj in ipairs(Workspace:GetDescendants()) do
-        if obj.Name == "AkiraEggBillboard" or obj.Name == "AkiraEggHighlight" then
-            obj:Destroy()
+local antiStaff = false
+local function CheckStaff(player)
+    if not antiStaff or player == LocalPlayer then return end
+    pcall(function()
+        if game.CreatorType == Enum.CreatorType.Group and player:GetRankInGroup(game.CreatorId) >= 100 then
+            LocalPlayer:Kick("Akira Guard: Staff detected!")
+        elseif player.UserId == game.CreatorId then
+            LocalPlayer:Kick("Akira Guard: Game Creator joined!")
         end
-    end
+    end)
 end
 
-AddToggle(UtilityPage, "Show Egg Price & ESP (បង្ហាញតម្លៃពង)", false, function(s)
+AddToggle(SecurityPage, "Anti-Staff (ចាកចេញពេលមាន Admin)", false, function(s)
+    antiStaff = s
+    if s then
+        for _, p in ipairs(Players:GetPlayers()) do CheckStaff(p) end
+    end
+end)
+Players.PlayerAdded:Connect(CheckStaff)
+
+-- [UTILITY - ESP (OPTIMIZED CACHE)]
+local eggEspActive = false
+local trackedEggParts = {}
+
+local function ClearESP()
+    for part, gui in pairs(trackedEggParts) do
+        if gui and gui.Parent then gui:Destroy() end
+    end
+    table.clear(trackedEggParts)
+end
+
+local function ApplyEggBillboard(part)
+    if not eggEspActive or trackedEggParts[part] then return end
+    local realName, price, col = GetEggDetails(part.Name)
+
+    local bb = Instance.new("BillboardGui")
+    bb.Name = "AkiraEggESP"
+    bb.Adornee = part
+    bb.Size = UDim2.new(0, 130, 0, 40)
+    bb.StudsOffset = Vector3.new(0, 2, 0)
+    bb.AlwaysOnTop = true
+
+    local titleLbl = Instance.new("TextLabel", bb)
+    titleLbl.Size = UDim2.new(1, 0, 0.5, 0)
+    titleLbl.BackgroundTransparency = 1
+    titleLbl.Text = realName
+    titleLbl.TextColor3 = col
+    titleLbl.Font = Enum.Font.ArialBold
+    titleLbl.TextSize = 12
+    titleLbl.TextStrokeTransparency = 0.2
+
+    local priceLbl = Instance.new("TextLabel", bb)
+    priceLbl.Position = UDim2.new(0, 0, 0.5, 0)
+    priceLbl.Size = UDim2.new(1, 0, 0.5, 0)
+    priceLbl.BackgroundTransparency = 1
+    priceLbl.Text = price .. " 🪙"
+    priceLbl.TextColor3 = Color3.fromRGB(255, 215, 0)
+    priceLbl.Font = Enum.Font.ArialBold
+    priceLbl.TextSize = 11
+    priceLbl.TextStrokeTransparency = 0.2
+
+    bb.Parent = part
+    trackedEggParts[part] = bb
+end
+
+AddToggle(UtilityPage, "Egg Price & ESP (បង្ហាញតម្លៃពង)", false, function(s)
     eggEspActive = s
     if s then
-        task.spawn(function()
-            while eggEspActive do
-                pcall(function()
-                    for _, obj in ipairs(Workspace:GetDescendants()) do
-                        if not eggEspActive then break end
-                        if obj:IsA("BasePart") and string.find(string.lower(obj.Name), "egg") and not obj:IsDescendantOf(LocalPlayer.Character) then
-                            if not obj:FindFirstChild("AkiraEggBillboard") then
-                                local realName, price, col = GetEggDetails(obj.Name)
+        for _, obj in ipairs(Workspace:GetDescendants()) do
+            if obj:IsA("BasePart") and string.find(string.lower(obj.Name), "egg") then
+                ApplyEggBillboard(obj)
+            end
+        end
+    else
+        ClearESP()
+    end
+end)
 
-                                local bb = Instance.new("BillboardGui")
-                                bb.Name = "AkiraEggBillboard"
-                                bb.Adornee = obj
-                                bb.Size = UDim2.new(0, 140, 0, 45)
-                                bb.StudsOffset = Vector3.new(0, 2.5, 0)
-                                bb.AlwaysOnTop = true
-                                bb.Parent = obj
+Workspace.DescendantAdded:Connect(function(descendant)
+    if eggEspActive and descendant:IsA("BasePart") and string.find(string.lower(descendant.Name), "egg") then
+        task.wait(0.2)
+        ApplyEggBillboard(descendant)
+    end
+end)
 
-                                local titleLbl = Instance.new("TextLabel", bb)
-                                titleLbl.Size = UDim2.new(1, 0, 0.5, 0)
-                                titleLbl.BackgroundTransparency = 1
-                                titleLbl.Text = realName
-                                titleLbl.TextColor3 = col
-                                titleLbl.Font = Enum.Font.ArialBold
-                                titleLbl.TextSize = 13
-                                titleLbl.TextStrokeTransparency = 0.2
-
-                                local priceLbl = Instance.new("TextLabel", bb)
-                                priceLbl.Position = UDim2.new(0, 0, 0.5, 0)
-                                priceLbl.Size = UDim2.new(1, 0, 0.5, 0)
-                                priceLbl.BackgroundTransparency = 1
-                                priceLbl.Text = "តម្លៃ: " .. price .. " 🪙"
-                                priceLbl.TextColor3 = Color3.fromRGB(255, 215, 0)
-                                priceLbl.Font = Enum.Font.ArialBold
-                                priceLbl.TextSize = 12
-                                priceLbl.TextStrokeTransparency = 0.2
-
-                                local hl = Instance.new("Highlight")
-                                hl.Name = "AkiraEggHighlight"
-                                hl.FillColor = col
-                                hl.OutlineColor = Color3.new(1, 1, 1)
-                                hl.FillTransparency = 0.4
-                                hl.Parent = obj
-                            end
-                        end
+-- [MOVEMENT]
+local noclip = false
+local noclipConn = nil
+AddToggle(MovementPage, "Noclip (ដើរកាត់ជញ្ជាំង)", false, function(s)
+    noclip = s
+    if s then
+        noclipConn = RunService.Stepped:Connect(function()
+            if noclip and LocalPlayer.Character then
+                for _, part in ipairs(LocalPlayer.Character:GetDescendants()) do
+                    if part:IsA("BasePart") and part.CanCollide then
+                        part.CanCollide = false
                     end
-                end)
-                task.wait(2)
+                end
             end
         end)
     else
-        ClearAllEggESP()
-    end
-end)
-
-local autoRejoinEnabled = true
-AddToggle(UtilityPage, "Auto Rejoin (ចូលវិញពេលដាច់)", true, function(s)
-    autoRejoinEnabled = s
-end)
-
-GuiService.ErrorMessageChanged:Connect(function()
-    if autoRejoinEnabled then
-        task.wait(0.5)
-        TeleportService:Teleport(game.PlaceId, LocalPlayer)
-    end
-end)
-
-AddButton(UtilityPage, "Server Hop (រក Server មនុស្សតិច)", function()
-    ServerHop()
-end)
-
--- [TAB: MOVEMENT]
-local noclip = false
-local noclipConnection = nil
-
-AddToggle(MovementPage, "Noclip (ដើរកាត់ជញ្ជាំង)", false, function(s)
-    noclip = s
-    if noclip then
-        if not noclipConnection then
-            noclipConnection = RunService.Stepped:Connect(function()
-                if noclip and LocalPlayer.Character then
-                    for _, part in ipairs(LocalPlayer.Character:GetDescendants()) do
-                        if part:IsA("BasePart") and part.CanCollide then
-                            part.CanCollide = false
-                        end
-                    end
-                end
-            end)
-        end
-    else
-        if noclipConnection then
-            noclipConnection:Disconnect()
-            noclipConnection = nil
+        if noclipConn then
+            noclipConn:Disconnect()
+            noclipConn = nil
         end
     end
 end)
 
-local infJump = false
-AddToggle(MovementPage, "Infinite Jump (លោតលើអាកាស)", false, function(s)
-    infJump = s
-end)
-
-UserInputService.JumpRequest:Connect(function()
-    if infJump and LocalPlayer.Character then
-        local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-        if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
-    end
-end)
-
-AddSlider(MovementPage, "WalkSpeed (ល្បឿនរត់)", 16, 150, 16, function(v)
-    realWalkSpeed = v
-    local char = LocalPlayer.Character
-    if char and char:FindFirstChildOfClass("Humanoid") then
-        char:FindFirstChildOfClass("Humanoid").WalkSpeed = v
-    end
-end)
-
-LocalPlayer.CharacterAdded:Connect(function(char)
-    local hum = char:WaitForChild("Humanoid", 5)
-    if hum and realWalkSpeed ~= 16 then
-        hum.WalkSpeed = realWalkSpeed
-    end
-    if nameProtectActive and hum then
-        hum.DisplayName = "Protected_User"
-    end
-end)
-
--- [TAB: MISC]
-local antiAfkEnabled = true
-LocalPlayer.Idled:Connect(function()
-    if antiAfkEnabled then
-        VirtualUser:Button2Down(Vector2.new(0, 0), Workspace.CurrentCamera.CFrame)
-        task.wait(1)
-        VirtualUser:Button2Up(Vector2.new(0, 0), Workspace.CurrentCamera.CFrame)
-    end
-end)
-
-AddToggle(MiscPage, "Anti-AFK (ការពារ Disconnect)", true, function(s)
-    antiAfkEnabled = s
-end)
-
-AddButton(MiscPage, "Copy Discord Server", function()
-    if setclipboard then
-        setclipboard("https://discord.gg/8cqVS3DUzu")
-    elseif toclipboard then
-        toclipboard("https://discord.gg/8cqVS3DUzu")
-    end
-end)
-
--- Toggle Menu Button
+-- Window Minimize Control
 CloseBtn.MouseButton1Click:Connect(function()
     Main.Visible = false
     local OpenBtn = ScreenGui:FindFirstChild("AkiraOpenBtn")
     if not OpenBtn then
         OpenBtn = Instance.new("TextButton", ScreenGui)
         OpenBtn.Name = "AkiraOpenBtn"
-        OpenBtn.Size = UDim2.fromOffset(80, 32)
-        OpenBtn.Position = UDim2.fromOffset(24, 24)
+        OpenBtn.Size = UDim2.fromOffset(75, 30)
+        OpenBtn.Position = UDim2.fromOffset(20, 20)
         OpenBtn.BackgroundColor3 = Color3.fromRGB(255, 35, 60)
         OpenBtn.Text = "AKIRA"
         OpenBtn.TextColor3 = Color3.new(1, 1, 1)
@@ -821,10 +658,6 @@ CloseBtn.MouseButton1Click:Connect(function()
         OpenBtn.Active = true
         OpenBtn.Draggable = true
         Instance.new("UICorner", OpenBtn).CornerRadius = UDim.new(0, 8)
-
-        local Glow = Instance.new("UIStroke", OpenBtn)
-        Glow.Color = Color3.fromRGB(255, 255, 255)
-        Glow.Thickness = 1
 
         OpenBtn.MouseButton1Click:Connect(function()
             Main.Visible = true
