@@ -1,38 +1,26 @@
 --[[
-    AKIRA SCRIPT HUB • FIXED & WORKING EDITION (MOBILE COMPATIBLE)
-    - ជួសជុលបញ្ហា Error បង្កើត Folder ក្នុង SoundService
-    - ធានាថាផ្ទាំង Menu បង្ហាញភ្លាមៗ ១០០%
-    - រក្សាស្ទីល Neon Blue, RGB Flow, Dragging និងចម្រៀង BGM ពេញលេញ[span_1](start_span)[span_1](end_span)
+    AKIRA SCRIPT HUB • MOBILE STABLE FIX
+    - ទំហំសមស្របជាមួយអេក្រង់ទូរស័ព្ទដៃ (380x230)
+    - ធានាដំណើរការ ១០០% មិនគាំង មិនបាត់ផ្ទាំង
 ]]
 
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
-local SoundService = game:GetService("SoundService")
 local ProximityPromptService = game:GetService("ProximityPromptService")
 
-local Player = Players.LocalPlayer or Players.PlayerAdded:Wait()
+local Player = Players.LocalPlayer
+while not Player do
+    task.wait(0.1)
+    Player = Players.LocalPlayer
+end
+
 local PlayerGui = Player:WaitForChild("PlayerGui", 10)
+if not PlayerGui then return end
 
--- សុវត្ថិភាព GuiParent (ការពារ crash លើគ្រប់ Executor)
-local GuiParent = nil
-pcall(function()
-    if gethui then
-        GuiParent = gethui()
-    elseif syn and syn.protect_gui then
-        syn.protect_gui(PlayerGui)
-        GuiParent = PlayerGui
-    else
-        GuiParent = PlayerGui
-    end
-end)
-if not GuiParent then GuiParent = PlayerGui end
-
--- លុបផ្ទាំងចាស់បើមាន
-local old = GuiParent:FindFirstChild("AkiraScriptHub")
-if old then
-    old:Destroy()
+-- សម្អាតផ្ទាំងចាស់
+if PlayerGui:FindFirstChild("AkiraHubFix") then
+    PlayerGui.AkiraHubFix:Destroy()
 end
 
 local function tween(obj, info, props)
@@ -42,57 +30,43 @@ local function tween(obj, info, props)
 end
 
 -- ============================================================
--- MAIN SCREEN GUI
+-- GUI មេ
 -- ============================================================
 local gui = Instance.new("ScreenGui")
-gui.Name = "AkiraScriptHub"
+gui.Name = "AkiraHubFix"
 gui.ResetOnSpawn = false
-gui.IgnoreGuiInset = true
 gui.DisplayOrder = 9999
-gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-gui.Parent = GuiParent
+gui.Parent = PlayerGui
 
-local scale = Instance.new("UIScale")
-scale.Scale = 0.92
-scale.Parent = gui
-
--- បង្កើត Sound ផ្ទុកក្នុង GUI ផ្ទាល់ ដើម្បីការពារ Error Permissions
+-- សំឡេងចុច
 local AkiraClickSound = Instance.new("Sound")
-AkiraClickSound.Name = "AkiraClick"
 AkiraClickSound.SoundId = "rbxassetid://6026984224"
-AkiraClickSound.Volume = 0.30
+AkiraClickSound.Volume = 0.3
 AkiraClickSound.Parent = gui
 
-local function AkiraPlayClick(speed, volume)
+local function AkiraPlayClick()
     pcall(function()
         AkiraClickSound:Stop()
         AkiraClickSound.TimePosition = 0
-        AkiraClickSound.PlaybackSpeed = speed or 1
-        AkiraClickSound.Volume = volume or 0.30
         AkiraClickSound:Play()
     end)
 end
 
--- ចម្រៀង BGM (Asset ID: 110960672338793)
+-- ចម្រៀង BGM
 local MusicSound = Instance.new("Sound")
-MusicSound.Name = "AkiraBGMusic"
+MusicSound.Name = "AkiraBGM"
 MusicSound.SoundId = "rbxassetid://110960672338793"
 MusicSound.Volume = 0.35
 MusicSound.Looped = true
 MusicSound.Parent = gui
+pcall(function() MusicSound:Play() end)
 
-task.spawn(function()
-    pcall(function()
-        MusicSound:Play()
-    end)
-end)
-
--- ផ្ទាំង Menu ធំ (Main Frame)
+-- ផ្ទាំង Menu ធំ (Main Frame កំណត់ទំហំឱ្យល្មមអេក្រង់ទូរស័ព្ទ)
 local main = Instance.new("Frame")
 main.Name = "Main"
 main.AnchorPoint = Vector2.new(0.5, 0.5)
 main.Position = UDim2.fromScale(0.5, 0.5)
-main.Size = UDim2.fromOffset(560, 310)
+main.Size = UDim2.fromOffset(390, 230)
 main.BackgroundColor3 = Color3.fromRGB(4, 9, 20)
 main.BorderSizePixel = 0
 main.Active = true
@@ -100,388 +74,333 @@ main.Visible = true
 main.Parent = gui
 
 local mainCorner = Instance.new("UICorner")
-mainCorner.CornerRadius = UDim.new(0, 18)
+mainCorner.CornerRadius = UDim.new(0, 14)
 mainCorner.Parent = main
 
 local mainStroke = Instance.new("UIStroke")
 mainStroke.Thickness = 2
 mainStroke.Color = Color3.fromRGB(0, 140, 255)
-mainStroke.Transparency = 0.2
 mainStroke.Parent = main
 
 -- ============================================================
--- TOP BAR (HEADER & DRAG AREA)
+-- TOP BAR (ចំណងជើង និងប៊ូតុង Close/Mini)
 -- ============================================================
 local top = Instance.new("Frame")
 top.Name = "TopBar"
-top.Size = UDim2.new(1, 0, 0, 68)
+top.Size = UDim2.new(1, 0, 0, 50)
 top.BackgroundTransparency = 1
 top.Active = true
 top.Parent = main
 
--- Logo Box
+-- Logo Card
 local logoCard = Instance.new("Frame")
-logoCard.Name = "LogoCard"
-logoCard.Position = UDim2.fromOffset(14, 10)
-logoCard.Size = UDim2.fromOffset(50, 50)
+logoCard.Position = UDim2.fromOffset(10, 8)
+logoCard.Size = UDim2.fromOffset(35, 35)
 logoCard.BackgroundColor3 = Color3.fromRGB(7, 16, 32)
 logoCard.BorderSizePixel = 0
 logoCard.Parent = top
 
-local logoCardCorner = Instance.new("UICorner")
-logoCardCorner.CornerRadius = UDim.new(0, 14)
-logoCardCorner.Parent = logoCard
+local lcCorner = Instance.new("UICorner")
+lcCorner.CornerRadius = UDim.new(0, 10)
+lcCorner.Parent = logoCard
 
-local logoCardStroke = Instance.new("UIStroke")
-logoCardStroke.Thickness = 1.2
-logoCardStroke.Color = Color3.fromRGB(0, 150, 255)
-logoCardStroke.Transparency = 0.35
-logoCardStroke.Parent = logoCard
+local lcStroke = Instance.new("UIStroke")
+lcStroke.Thickness = 1.2
+lcStroke.Color = Color3.fromRGB(0, 140, 255)
+lcStroke.Parent = logoCard
 
 local logoImage = Instance.new("ImageLabel")
-logoImage.Name = "LogoImage"
 logoImage.BackgroundTransparency = 1
 logoImage.AnchorPoint = Vector2.new(0.5, 0.5)
 logoImage.Position = UDim2.fromScale(0.5, 0.5)
-logoImage.Size = UDim2.fromOffset(40, 40)
+logoImage.Size = UDim2.fromOffset(28, 28)
 logoImage.Image = "rbxassetid://97330468088484"
 logoImage.Parent = logoCard
 
--- Header Title & Subtitle
 local title = Instance.new("TextLabel")
-title.Name = "TitleText"
 title.BackgroundTransparency = 1
-title.Position = UDim2.fromOffset(74, 15)
-title.Size = UDim2.new(0, 200, 0, 22)
+title.Position = UDim2.fromOffset(52, 9)
+title.Size = UDim2.new(0, 150, 0, 18)
 title.Font = Enum.Font.GothamBlack
 title.Text = "AKIRA SCRIPT"
-title.TextSize = 18
+title.TextSize = 14
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.Parent = top
 
 local subtitle = Instance.new("TextLabel")
 subtitle.BackgroundTransparency = 1
-subtitle.Position = UDim2.fromOffset(74, 38)
-subtitle.Size = UDim2.new(0, 250, 0, 16)
+subtitle.Position = UDim2.fromOffset(52, 27)
+subtitle.Size = UDim2.new(0, 200, 0, 14)
 subtitle.Font = Enum.Font.GothamBold
 subtitle.Text = "Product BENZ • AKIRA SCRIPT"
-subtitle.TextSize = 11
+subtitle.TextSize = 9
 subtitle.TextColor3 = Color3.fromRGB(180, 195, 220)
 subtitle.TextXAlignment = Enum.TextXAlignment.Left
 subtitle.Parent = top
 
--- Controls: Close / Minimize
-local function createTopControl(iconAssetId, xOffset)
+-- ប៊ូតុង Close និង Minimize
+local function createTopControl(iconId, xPos)
     local btn = Instance.new("ImageButton")
-    btn.Size = UDim2.fromOffset(26, 26)
-    btn.Position = UDim2.new(1, xOffset, 0, 15)
+    btn.Size = UDim2.fromOffset(24, 24)
+    btn.Position = UDim2.new(1, xPos, 0, 12)
     btn.AnchorPoint = Vector2.new(1, 0)
     btn.BackgroundColor3 = Color3.fromRGB(8, 18, 38)
     btn.BorderSizePixel = 0
     btn.AutoButtonColor = false
     btn.Parent = top
 
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 7)
-    corner.Parent = btn
-
-    local bStroke = Instance.new("UIStroke")
-    bStroke.Thickness = 1
-    bStroke.Color = Color3.fromRGB(20, 45, 80)
-    bStroke.Parent = btn
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, 6)
+    c.Parent = btn
 
     local img = Instance.new("ImageLabel")
     img.BackgroundTransparency = 1
     img.AnchorPoint = Vector2.new(0.5, 0.5)
     img.Position = UDim2.fromScale(0.5, 0.5)
-    img.Size = UDim2.fromOffset(14, 14)
-    img.Image = iconAssetId
+    img.Size = UDim2.fromOffset(12, 12)
+    img.Image = iconId
     img.ImageColor3 = Color3.fromRGB(190, 210, 240)
     img.Parent = btn
 
     return btn
 end
 
-local closeBtn = createTopControl("rbxassetid://10747384394", -15)
-local minimizeBtn = createTopControl("rbxassetid://10709790948", -48)
+local closeBtn = createTopControl("rbxassetid://10747384394", -10)
+local minimizeBtn = createTopControl("rbxassetid://10709790948", -38)
 
 -- ============================================================
 -- SIDEBAR & TABS
 -- ============================================================
 local sidebar = Instance.new("Frame")
-sidebar.Name = "Sidebar"
-sidebar.Position = UDim2.fromOffset(14, 72)
-sidebar.Size = UDim2.new(0, 116, 1, -86)
+sidebar.Position = UDim2.fromOffset(10, 52)
+sidebar.Size = UDim2.new(0, 95, 1, -62)
 sidebar.BackgroundColor3 = Color3.fromRGB(6, 13, 26)
 sidebar.BorderSizePixel = 0
 sidebar.Parent = main
 
-local sideCorner = Instance.new("UICorner")
-sideCorner.CornerRadius = UDim.new(0, 14)
-sideCorner.Parent = sidebar
+local sbCorner = Instance.new("UICorner")
+sbCorner.CornerRadius = UDim.new(0, 10)
+sbCorner.Parent = sidebar
 
-local sideStroke = Instance.new("UIStroke")
-sideStroke.Thickness = 1.2
-sideStroke.Color = Color3.fromRGB(0, 140, 255)
-sideStroke.Transparency = 0.35
-sideStroke.Parent = sidebar
+local sbStroke = Instance.new("UIStroke")
+sbStroke.Thickness = 1
+sbStroke.Color = Color3.fromRGB(0, 140, 255)
+sbStroke.Transparency = 0.4
+sbStroke.Parent = sidebar
 
--- Telegram Button
-local telegramBtn = Instance.new("TextButton")
-telegramBtn.Name = "TelegramButton"
-telegramBtn.AnchorPoint = Vector2.new(0.5, 1)
-telegramBtn.Position = UDim2.new(0.5, 0, 1, -10)
-telegramBtn.Size = UDim2.new(1, -16, 0, 32)
-telegramBtn.BackgroundColor3 = Color3.fromRGB(0, 140, 255)
-telegramBtn.BorderSizePixel = 0
-telegramBtn.Text = "telegram"
-telegramBtn.Font = Enum.Font.GothamBlack
-telegramBtn.TextSize = 13
-telegramBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-telegramBtn.AutoButtonColor = false
-telegramBtn.Parent = sidebar
+local teleBtn = Instance.new("TextButton")
+teleBtn.AnchorPoint = Vector2.new(0.5, 1)
+teleBtn.Position = UDim2.new(0.5, 0, 1, -6)
+teleBtn.Size = UDim2.new(1, -10, 0, 26)
+teleBtn.BackgroundColor3 = Color3.fromRGB(0, 140, 255)
+teleBtn.BorderSizePixel = 0
+teleBtn.Text = "telegram"
+teleBtn.Font = Enum.Font.GothamBlack
+teleBtn.TextSize = 11
+teleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+teleBtn.AutoButtonColor = false
+teleBtn.Parent = sidebar
 
-local teleCorner = Instance.new("UICorner")
-teleCorner.CornerRadius = UDim.new(0, 10)
-teleCorner.Parent = telegramBtn
+local tCorner = Instance.new("UICorner")
+tCorner.CornerRadius = UDim.new(0, 6)
+tCorner.Parent = teleBtn
 
-local teleGradient = Instance.new("UIGradient")
-teleGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 180, 255)),
-    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 110, 240))
-})
-teleGradient.Rotation = 90
-teleGradient.Parent = telegramBtn
-
--- Content Pages
 local content = Instance.new("Frame")
-content.Name = "Content"
-content.Position = UDim2.new(0, 140, 0, 72)
-content.Size = UDim2.new(1, -154, 1, -86)
+content.Position = UDim2.new(0, 112, 0, 52)
+content.Size = UDim2.new(1, -122, 1, -62)
 content.BackgroundTransparency = 1
 content.Parent = main
 
-local currentTab = "ស្គ្រីប"
 local pages = {}
-local tabButtons = {}
+local tabBtns = {}
 
-local function makePage(name)
-    local page = Instance.new("ScrollingFrame")
-    page.Name = name
-    page.Size = UDim2.fromScale(1, 1)
-    page.BackgroundTransparency = 1
-    page.BorderSizePixel = 0
-    page.ScrollBarThickness = 3
-    page.ScrollBarImageColor3 = Color3.fromRGB(0, 140, 255)
-    page.CanvasSize = UDim2.new()
-    page.AutomaticCanvasSize = Enum.AutomaticSize.Y
-    page.ScrollingDirection = Enum.ScrollingDirection.Y
-    page.Visible = (name == "ស្គ្រីប")
-    page.Parent = content
+local function createPage(name, visible)
+    local p = Instance.new("ScrollingFrame")
+    p.Size = UDim2.fromScale(1, 1)
+    p.BackgroundTransparency = 1
+    p.BorderSizePixel = 0
+    p.ScrollBarThickness = 2
+    p.ScrollBarImageColor3 = Color3.fromRGB(0, 140, 255)
+    p.CanvasSize = UDim2.new()
+    p.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    p.Visible = visible
+    p.Parent = content
 
-    local layout = Instance.new("UIListLayout")
-    layout.Padding = UDim.new(0, 10)
-    layout.SortOrder = Enum.SortOrder.LayoutOrder
-    layout.Parent = page
+    local l = Instance.new("UIListLayout")
+    l.Padding = UDim.new(0, 6)
+    l.SortOrder = Enum.SortOrder.LayoutOrder
+    l.Parent = p
 
-    pages[name] = page
-    return page
+    pages[name] = p
+    return p
 end
 
-local scriptsPage = makePage("ស្គ្រីប")
-local configPage = makePage("ការកំណត់")
-local infoPage = makePage("ព័ត៌មាន")
+local scriptsPage = createPage("ស្គ្រីប", true)
+local configPage = createPage("ការកំណត់", false)
+local infoPage = createPage("ព័ត៌មាន", false)
 
-local function createTabButton(text, iconAssetId, yOffset)
+local function createTab(name, iconId, yOffset)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, -14, 0, 32)
-    btn.Position = UDim2.fromOffset(7, yOffset)
+    btn.Size = UDim2.new(1, -8, 0, 28)
+    btn.Position = UDim2.fromOffset(4, yOffset)
     btn.BackgroundColor3 = Color3.fromRGB(11, 24, 48)
-    btn.BackgroundTransparency = 1
+    btn.BackgroundTransparency = (name == "ស្គ្រីប" and 0 or 1)
     btn.BorderSizePixel = 0
     btn.Text = ""
     btn.AutoButtonColor = false
     btn.Parent = sidebar
 
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, 8)
-    corner.Parent = btn
+    local c = Instance.new("UICorner")
+    c.CornerRadius = UDim.new(0, 6)
+    c.Parent = btn
 
-    local iconImg = Instance.new("ImageLabel")
-    iconImg.Name = "TabIcon"
-    iconImg.BackgroundTransparency = 1
-    iconImg.AnchorPoint = Vector2.new(0, 0.5)
-    iconImg.Position = UDim2.new(0, 8, 0.5, 0)
-    iconImg.Size = UDim2.fromOffset(16, 16)
-    iconImg.Image = iconAssetId
-    iconImg.ImageColor3 = Color3.fromRGB(120, 140, 170)
-    iconImg.Parent = btn
+    local icon = Instance.new("ImageLabel")
+    icon.Name = "Icon"
+    icon.BackgroundTransparency = 1
+    icon.AnchorPoint = Vector2.new(0, 0.5)
+    icon.Position = UDim2.new(0, 6, 0.5, 0)
+    icon.Size = UDim2.fromOffset(13, 13)
+    icon.Image = iconId
+    icon.ImageColor3 = (name == "ស្គ្រីប" and Color3.fromRGB(0, 190, 255) or Color3.fromRGB(120, 140, 170))
+    icon.Parent = btn
 
-    local label = Instance.new("TextLabel")
-    label.Name = "Label"
-    label.BackgroundTransparency = 1
-    label.Position = UDim2.fromOffset(30, 0)
-    label.Size = UDim2.new(1, -34, 1, 0)
-    label.Font = Enum.Font.FredokaOne
-    label.Text = text
-    label.TextSize = 11
-    label.TextColor3 = Color3.fromRGB(120, 140, 170)
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Parent = btn
+    local lbl = Instance.new("TextLabel")
+    lbl.Name = "Lbl"
+    lbl.BackgroundTransparency = 1
+    lbl.Position = UDim2.fromOffset(24, 0)
+    lbl.Size = UDim2.new(1, -26, 1, 0)
+    lbl.Font = Enum.Font.FredokaOne
+    lbl.Text = name
+    lbl.TextSize = 10
+    lbl.TextColor3 = (name == "ស្គ្រីប" and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(120, 140, 170))
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.Parent = btn
 
-    tabButtons[text] = btn
+    btn.Activated:Connect(function()
+        AkiraPlayClick()
+        for tName, tBtn in pairs(tabBtns) do
+            local sel = (tName == name)
+            tBtn.BackgroundTransparency = sel and 0 or 1
+            tBtn.Icon.ImageColor3 = sel and Color3.fromRGB(0, 190, 255) or Color3.fromRGB(120, 140, 170)
+            tBtn.Lbl.TextColor3 = sel and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(120, 140, 170)
+            pages[tName].Visible = sel
+        end
+    end)
+
+    tabBtns[name] = btn
     return btn
 end
 
-local tab1 = createTabButton("ស្គ្រីប", "rbxassetid://10734950309", 12)
-local tab2 = createTabButton("ការកំណត់", "rbxassetid://10734950020", 50)
-local tab3 = createTabButton("ព័ត៌មាន", "rbxassetid://10747373176", 88)
-
-local function switchTab(tabName)
-    currentTab = tabName
-    for name, btn in pairs(tabButtons) do
-        local selected = (name == tabName)
-        local icon = btn:FindFirstChild("TabIcon")
-        local lbl = btn:FindFirstChild("Label")
-        if selected then
-            btn.BackgroundTransparency = 0
-            if icon then icon.ImageColor3 = Color3.fromRGB(0, 190, 255) end
-            if lbl then lbl.TextColor3 = Color3.fromRGB(255, 255, 255) end
-        else
-            btn.BackgroundTransparency = 1
-            if icon then icon.ImageColor3 = Color3.fromRGB(110, 130, 160) end
-            if lbl then lbl.TextColor3 = Color3.fromRGB(110, 130, 160) end
-        end
-    end
-    for name, page in pairs(pages) do
-        page.Visible = (name == tabName)
-    end
-end
-
-tab1.Activated:Connect(function() AkiraPlayClick(); switchTab("ស្គ្រីប") end)
-tab2.Activated:Connect(function() AkiraPlayClick(); switchTab("ការកំណត់") end)
-tab3.Activated:Connect(function() AkiraPlayClick(); switchTab("ព័ត៌មាន") end)
-switchTab("ស្គ្រីប")
+createTab("ស្គ្រីប", "rbxassetid://10734950309", 8)
+createTab("ការកំណត់", "rbxassetid://10734950020", 40)
+createTab("ព័ត៌មាន", "rbxassetid://10747373176", 72)
 
 -- ============================================================
--- ANTI-HIT CARD & TOGGLE SWITCH (SCRIPTS TAB)[span_2](start_span)[span_2](end_span)
+-- ANTI-HIT (TAB 1)
 -- ============================================================
 local AntiHitEnabled = false
 local IsAntiHitRunning = false
-local ANTI_HIT_SPEED = 0.016
 
-local antiHitCard = Instance.new("Frame")
-antiHitCard.Name = "AntiHitCard"
-antiHitCard.Size = UDim2.new(1, -10, 0, 60)
-antiHitCard.BackgroundColor3 = Color3.fromRGB(7, 16, 32)
-antiHitCard.BorderSizePixel = 0
-antiHitCard.Parent = scriptsPage
+local ahCard = Instance.new("Frame")
+ahCard.Size = UDim2.new(1, -6, 0, 50)
+ahCard.BackgroundColor3 = Color3.fromRGB(7, 16, 32)
+ahCard.BorderSizePixel = 0
+ahCard.Parent = scriptsPage
 
-local ahcCorner = Instance.new("UICorner")
-ahcCorner.CornerRadius = UDim.new(0, 12)
-ahcCorner.Parent = antiHitCard
+local ahCorner = Instance.new("UICorner")
+ahCorner.CornerRadius = UDim.new(0, 8)
+ahCorner.Parent = ahCard
 
 local ahcStroke = Instance.new("UIStroke")
-ahcStroke.Thickness = 1.2
+ahcStroke.Thickness = 1
 ahcStroke.Color = Color3.fromRGB(0, 140, 255)
 ahcStroke.Transparency = 0.5
-ahcStroke.Parent = antiHitCard
+ahcStroke.Parent = ahCard
 
-local shieldBox = Instance.new("Frame")
-shieldBox.Name = "ShieldBox"
-shieldBox.Position = UDim2.fromOffset(8, 8)
-shieldBox.Size = UDim2.fromOffset(44, 44)
-shieldBox.BackgroundColor3 = Color3.fromRGB(12, 26, 52)
-shieldBox.BorderSizePixel = 0
-shieldBox.Parent = antiHitCard
+local sBox = Instance.new("Frame")
+sBox.Position = UDim2.fromOffset(6, 7)
+sBox.Size = UDim2.fromOffset(36, 36)
+sBox.BackgroundColor3 = Color3.fromRGB(12, 26, 52)
+sBox.BorderSizePixel = 0
+sBox.Parent = ahCard
 
-local sbCorner = Instance.new("UICorner")
-sbCorner.CornerRadius = UDim.new(0, 10)
-sbCorner.Parent = shieldBox
+local sbC = Instance.new("UICorner")
+sbC.CornerRadius = UDim.new(0, 8)
+sbC.Parent = sBox
 
-local shieldIcon = Instance.new("ImageLabel")
-shieldIcon.BackgroundTransparency = 1
-shieldIcon.AnchorPoint = Vector2.new(0.5, 0.5)
-shieldIcon.Position = UDim2.fromScale(0.5, 0.5)
-shieldIcon.Size = UDim2.fromOffset(26, 26)
-shieldIcon.Image = "rbxassetid://10734950309"
-shieldIcon.ImageColor3 = Color3.fromRGB(0, 160, 255)
-shieldIcon.Parent = shieldBox
+local sImg = Instance.new("ImageLabel")
+sImg.BackgroundTransparency = 1
+sImg.AnchorPoint = Vector2.new(0.5, 0.5)
+sImg.Position = UDim2.fromScale(0.5, 0.5)
+sImg.Size = UDim2.fromOffset(20, 20)
+sImg.Image = "rbxassetid://10734950309"
+sImg.ImageColor3 = Color3.fromRGB(0, 160, 255)
+sImg.Parent = sBox
 
 local ahTitle = Instance.new("TextLabel")
 ahTitle.BackgroundTransparency = 1
-ahTitle.Position = UDim2.fromOffset(62, 11)
-ahTitle.Size = UDim2.new(1, -140, 0, 20)
+ahTitle.Position = UDim2.fromOffset(48, 8)
+ahTitle.Size = UDim2.new(1, -100, 0, 16)
 ahTitle.Font = Enum.Font.FredokaOne
 ahTitle.RichText = true
-ahTitle.Text = 'ការការពារការវាយ <font color="rgb(0, 210, 255)">(ANTI-HIT)</font>[span_3](start_span)'[span_3](end_span)
-ahTitle.TextSize = 13
+ahTitle.Text = 'ការការពារការវាយ <font color="rgb(0, 210, 255)">(ANTI-HIT)</font>[span_0](start_span)'[span_0](end_span)
+ahTitle.TextSize = 11
 ahTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
 ahTitle.TextXAlignment = Enum.TextXAlignment.Left
-ahTitle.Parent = antiHitCard
+ahTitle.Parent = ahCard
 
 local ahStatus = Instance.new("TextLabel")
 ahStatus.BackgroundTransparency = 1
-ahStatus.Position = UDim2.fromOffset(62, 31)
-ahStatus.Size = UDim2.new(1, -140, 0, 16)
+ahStatus.Position = UDim2.fromOffset(48, 25)
+ahStatus.Size = UDim2.new(1, -100, 0, 14)
 ahStatus.Font = Enum.Font.FredokaOne
-ahStatus.Text = "ស្ថានភាព៖ បិទ[span_4](start_span)"[span_4](end_span)
-ahStatus.TextSize = 10
+ahStatus.Text = "ស្ថានភាព៖ បិទ[span_1](start_span)"[span_1](end_span)
+ahStatus.TextSize = 9
 ahStatus.TextColor3 = Color3.fromRGB(130, 150, 180)
 ahStatus.TextXAlignment = Enum.TextXAlignment.Left
-ahStatus.Parent = antiHitCard
+ahStatus.Parent = ahCard
 
-local toggleTrack = Instance.new("TextButton")
-toggleTrack.Name = "ToggleTrack"
-toggleTrack.AnchorPoint = Vector2.new(1, 0.5)
-toggleTrack.Position = UDim2.new(1, -14, 0.5, 0)
-toggleTrack.Size = UDim2.fromOffset(48, 24)
-toggleTrack.BackgroundColor3 = Color3.fromRGB(24, 40, 68)
-toggleTrack.BorderSizePixel = 0
-toggleTrack.Text = ""
-toggleTrack.AutoButtonColor = false
-toggleTrack.Parent = antiHitCard
+local ahToggle = Instance.new("TextButton")
+ahToggle.AnchorPoint = Vector2.new(1, 0.5)
+ahToggle.Position = UDim2.new(1, -10, 0.5, 0)
+ahToggle.Size = UDim2.fromOffset(42, 20)
+ahToggle.BackgroundColor3 = Color3.fromRGB(24, 40, 68)
+ahToggle.BorderSizePixel = 0
+ahToggle.Text = ""
+ahToggle.AutoButtonColor = false
+ahToggle.Parent = ahCard
 
-local ttCorner = Instance.new("UICorner")
-ttCorner.CornerRadius = UDim.new(1, 0)
-ttCorner.Parent = toggleTrack
+local ahtC = Instance.new("UICorner")
+ahtC.CornerRadius = UDim.new(1, 0)
+ahtC.Parent = ahToggle
 
-local toggleThumb = Instance.new("Frame")
-toggleThumb.Name = "Thumb"
-toggleThumb.AnchorPoint = Vector2.new(0, 0.5)
-toggleThumb.Position = UDim2.new(0, 3, 0.5, 0)
-toggleThumb.Size = UDim2.fromOffset(18, 18)
-toggleThumb.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-toggleThumb.BorderSizePixel = 0
-toggleThumb.Parent = toggleTrack
+local ahThumb = Instance.new("Frame")
+ahThumb.AnchorPoint = Vector2.new(0, 0.5)
+ahThumb.Position = UDim2.new(0, 3, 0.5, 0)
+ahThumb.Size = UDim2.fromOffset(14, 14)
+ahThumb.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+ahThumb.BorderSizePixel = 0
+ahThumb.Parent = ahToggle
 
-local thumbCorner = Instance.new("UICorner")
-thumbCorner.CornerRadius = UDim.new(1, 0)
-thumbCorner.Parent = toggleThumb
+local ahmC = Instance.new("UICorner")
+ahmC.CornerRadius = UDim.new(1, 0)
+ahmC.Parent = ahThumb
 
-local function setToggle(state)
-    AntiHitEnabled = state
+ahToggle.Activated:Connect(function()
+    AkiraPlayClick()
+    AntiHitEnabled = not AntiHitEnabled
     if AntiHitEnabled then
         ahStatus.Text = "ស្ថានភាព៖ បើកដំណើរការ"
         ahStatus.TextColor3 = Color3.fromRGB(80, 255, 140)
-        tween(toggleTrack, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(0, 140, 255)})
-        tween(toggleThumb, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-            Position = UDim2.new(1, -21, 0.5, 0)
-        })
+        ahToggle.BackgroundColor3 = Color3.fromRGB(0, 140, 255)
+        ahThumb.Position = UDim2.new(1, -17, 0.5, 0)
     else
-        ahStatus.Text = "ស្ថានភាព៖ បិទ[span_5](start_span)"[span_5](end_span)
+        ahStatus.Text = "ស្ថានភាព៖ បិទ[span_2](start_span)"[span_2](end_span)
         ahStatus.TextColor3 = Color3.fromRGB(130, 150, 180)
-        tween(toggleTrack, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(24, 40, 68)})
-        tween(toggleThumb, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-            Position = UDim2.new(0, 3, 0.5, 0)
-        })
+        ahToggle.BackgroundColor3 = Color3.fromRGB(24, 40, 68)
+        ahThumb.Position = UDim2.new(0, 3, 0.5, 0)
     end
-end
-
-toggleTrack.Activated:Connect(function()
-    AkiraPlayClick()
-    setToggle(not AntiHitEnabled)
 end)
 
 local TeleportPoints = {
@@ -496,392 +415,250 @@ local TeleportPoints = {
     Vector3.new(546.80, 70.28, -364.40)
 }
 
-local function TeleportRoute(character)
-    if not character then return end
-    local humanoid = character:FindFirstChildOfClass("Humanoid")
-    local root = character:FindFirstChild("HumanoidRootPart")
-    if not root or not humanoid or humanoid.Health <= 0 then return end
-
-    IsAntiHitRunning = true
-    for _, pos in ipairs(TeleportPoints) do
-        if not AntiHitEnabled or not root.Parent or humanoid.Health <= 0 then
-            IsAntiHitRunning = false
-            return
-        end
-        root.CFrame = CFrame.new(pos, pos + root.CFrame.LookVector)
-        task.wait(ANTI_HIT_SPEED)
-    end
-    IsAntiHitRunning = false
-end
-
 ProximityPromptService.PromptTriggered:Connect(function(prompt, p)
     if p ~= Player or not AntiHitEnabled or IsAntiHitRunning then return end
     local char = Player.Character
-    if char then
-        task.spawn(function()
-            TeleportRoute(char)
+    local root = char and char:FindFirstChild("HumanoidRootPart")
+    local hum = char and char:FindFirstChildOfClass("Humanoid")
+    if not root or not hum or hum.Health <= 0 then return end
+
+    IsAntiHitRunning = true
+    task.spawn(function()
+        for _, pos in ipairs(TeleportPoints) do
+            if not AntiHitEnabled or not root.Parent or hum.Health <= 0 then break end
+            root.CFrame = CFrame.new(pos, pos + root.CFrame.LookVector)
+            task.wait(0.016)
+        end
+        IsAntiHitRunning = false
+    end)
+end)
+
+-- ============================================================
+-- MUSIC TOGGLE (TAB 2)
+-- ============================================================
+local mCard = Instance.new("Frame")
+mCard.Size = UDim2.new(1, -6, 0, 50)
+mCard.BackgroundColor3 = Color3.fromRGB(7, 16, 32)
+mCard.BorderSizePixel = 0
+mCard.Parent = configPage
+
+local mcCorner = Instance.new("UICorner")
+mcCorner.CornerRadius = UDim.new(0, 8)
+mcCorner.Parent = mCard
+
+local mcStroke = Instance.new("UIStroke")
+mcStroke.Thickness = 1
+mcStroke.Color = Color3.fromRGB(0, 140, 255)
+mcStroke.Transparency = 0.5
+mcStroke.Parent = mCard
+
+local mBox = Instance.new("Frame")
+mBox.Position = UDim2.fromOffset(6, 7)
+mBox.Size = UDim2.fromOffset(36, 36)
+mBox.BackgroundColor3 = Color3.fromRGB(12, 26, 52)
+mBox.BorderSizePixel = 0
+mBox.Parent = mCard
+
+local mbC = Instance.new("UICorner")
+mbC.CornerRadius = UDim.new(0, 8)
+mbC.Parent = mBox
+
+local mImg = Instance.new("ImageLabel")
+mImg.BackgroundTransparency = 1
+mImg.AnchorPoint = Vector2.new(0.5, 0.5)
+mImg.Position = UDim2.fromScale(0.5, 0.5)
+mImg.Size = UDim2.fromOffset(18, 18)
+mImg.Image = "rbxassetid://10734952485"
+mImg.ImageColor3 = Color3.fromRGB(0, 180, 255)
+mImg.Parent = mBox
+
+local mTitle = Instance.new("TextLabel")
+mTitle.BackgroundTransparency = 1
+mTitle.Position = UDim2.fromOffset(48, 8)
+mTitle.Size = UDim2.new(1, -100, 0, 16)
+mTitle.Font = Enum.Font.FredokaOne
+mTitle.Text = "តន្ត្រីផ្ទៃខាងក្រោយ (BGM)"
+mTitle.TextSize = 11
+mTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+mTitle.TextXAlignment = Enum.TextXAlignment.Left
+mTitle.Parent = mCard
+
+local mStatus = Instance.new("TextLabel")
+mStatus.BackgroundTransparency = 1
+mStatus.Position = UDim2.fromOffset(48, 25)
+mStatus.Size = UDim2.new(1, -100, 0, 14)
+mStatus.Font = Enum.Font.FredokaOne
+mStatus.Text = "ស្ថានភាព៖ បើក"
+mStatus.TextSize = 9
+mStatus.TextColor3 = Color3.fromRGB(80, 255, 140)
+mStatus.TextXAlignment = Enum.TextXAlignment.Left
+mStatus.Parent = mCard
+
+local mToggle = Instance.new("TextButton")
+mToggle.AnchorPoint = Vector2.new(1, 0.5)
+mToggle.Position = UDim2.new(1, -10, 0.5, 0)
+mToggle.Size = UDim2.fromOffset(42, 20)
+mToggle.BackgroundColor3 = Color3.fromRGB(0, 140, 255)
+mToggle.BorderSizePixel = 0
+mToggle.Text = ""
+mToggle.AutoButtonColor = false
+mToggle.Parent = mCard
+
+local mtC = Instance.new("UICorner")
+mtC.CornerRadius = UDim.new(1, 0)
+mtC.Parent = mToggle
+
+local mThumb = Instance.new("Frame")
+mThumb.AnchorPoint = Vector2.new(0, 0.5)
+mThumb.Position = UDim2.new(1, -17, 0.5, 0)
+mThumb.Size = UDim2.fromOffset(14, 14)
+mThumb.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+mThumb.BorderSizePixel = 0
+mThumb.Parent = mToggle
+
+local mmC = Instance.new("UICorner")
+mmC.CornerRadius = UDim.new(1, 0)
+mmC.Parent = mThumb
+
+local isMusicOn = true
+mToggle.Activated:Connect(function()
+    AkiraPlayClick()
+    isMusicOn = not isMusicOn
+    if isMusicOn then
+        pcall(function() MusicSound:Resume() end)
+        mStatus.Text = "ស្ថានភាព៖ បើក"
+        mStatus.TextColor3 = Color3.fromRGB(80, 255, 140)
+        mToggle.BackgroundColor3 = Color3.fromRGB(0, 140, 255)
+        mThumb.Position = UDim2.new(1, -17, 0.5, 0)
+    else
+        pcall(function() MusicSound:Pause() end)
+        mStatus.Text = "ស្ថានភាព៖ បិទ"
+        mStatus.TextColor3 = Color3.fromRGB(130, 150, 180)
+        mToggle.BackgroundColor3 = Color3.fromRGB(24, 40, 68)
+        mThumb.Position = UDim2.new(0, 3, 0.5, 0)
+    end
+end)
+
+-- ============================================================
+-- DRAGGING លើ MENU
+-- ============================================================
+local mDragging = false
+local mStart, mPos
+
+top.InputBegan:Connect(function(inp)
+    if inp.UserInputType == Enum.UserInputType.MouseButton1 or inp.UserInputType == Enum.UserInputType.Touch then
+        mDragging = true
+        mStart = inp.Position
+        mPos = main.Position
+        inp.Changed:Connect(function()
+            if inp.UserInputState == Enum.UserInputState.End then
+                mDragging = false
+            end
         end)
     end
 end)
 
--- ============================================================
--- BACKGROUND MUSIC TOGGLE (CONFIG TAB)
--- ============================================================
-local musicCard = Instance.new("Frame")
-musicCard.Name = "MusicCard"
-musicCard.Size = UDim2.new(1, -10, 0, 54)
-musicCard.BackgroundColor3 = Color3.fromRGB(7, 16, 32)
-musicCard.BorderSizePixel = 0
-musicCard.Parent = configPage
-
-local mcCorner = Instance.new("UICorner")
-mcCorner.CornerRadius = UDim.new(0, 12)
-mcCorner.Parent = musicCard
-
-local mcStroke = Instance.new("UIStroke")
-mcStroke.Thickness = 1.2
-mcStroke.Color = Color3.fromRGB(0, 140, 255)
-mcStroke.Transparency = 0.5
-mcStroke.Parent = musicCard
-
-local musicIconBox = Instance.new("Frame")
-musicIconBox.Position = UDim2.fromOffset(8, 7)
-musicIconBox.Size = UDim2.fromOffset(40, 40)
-musicIconBox.BackgroundColor3 = Color3.fromRGB(12, 26, 52)
-musicIconBox.BorderSizePixel = 0
-musicIconBox.Parent = musicCard
-
-local mibCorner = Instance.new("UICorner")
-mibCorner.CornerRadius = UDim.new(0, 10)
-mibCorner.Parent = musicIconBox
-
-local musicIcon = Instance.new("ImageLabel")
-musicIcon.BackgroundTransparency = 1
-musicIcon.AnchorPoint = Vector2.new(0.5, 0.5)
-musicIcon.Position = UDim2.fromScale(0.5, 0.5)
-musicIcon.Size = UDim2.fromOffset(22, 22)
-musicIcon.Image = "rbxassetid://10734952485"
-musicIcon.ImageColor3 = Color3.fromRGB(0, 180, 255)
-musicIcon.Parent = musicIconBox
-
-local musicTitle = Instance.new("TextLabel")
-musicTitle.BackgroundTransparency = 1
-musicTitle.Position = UDim2.fromOffset(56, 9)
-musicTitle.Size = UDim2.new(1, -120, 0, 18)
-musicTitle.Font = Enum.Font.FredokaOne
-musicTitle.Text = "តន្ត្រីផ្ទៃខាងក្រោយ (BGM)"
-musicTitle.TextSize = 12
-musicTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-musicTitle.TextXAlignment = Enum.TextXAlignment.Left
-musicTitle.Parent = musicCard
-
-local musicStatus = Instance.new("TextLabel")
-musicStatus.BackgroundTransparency = 1
-musicStatus.Position = UDim2.fromOffset(56, 28)
-musicStatus.Size = UDim2.new(1, -120, 0, 16)
-musicStatus.Font = Enum.Font.FredokaOne
-musicStatus.Text = "ស្ថានភាព៖ បើក"
-musicStatus.TextSize = 10
-musicStatus.TextColor3 = Color3.fromRGB(80, 255, 140)
-musicStatus.TextXAlignment = Enum.TextXAlignment.Left
-musicStatus.Parent = musicCard
-
-local musicToggle = Instance.new("TextButton")
-musicToggle.Name = "MusicToggle"
-musicToggle.AnchorPoint = Vector2.new(1, 0.5)
-musicToggle.Position = UDim2.new(1, -12, 0.5, 0)
-musicToggle.Size = UDim2.fromOffset(48, 24)
-musicToggle.BackgroundColor3 = Color3.fromRGB(0, 140, 255)
-musicToggle.BorderSizePixel = 0
-musicToggle.Text = ""
-musicToggle.AutoButtonColor = false
-musicToggle.Parent = musicCard
-
-local mtCorner = Instance.new("UICorner")
-mtCorner.CornerRadius = UDim.new(1, 0)
-mtCorner.Parent = musicToggle
-
-local musicThumb = Instance.new("Frame")
-musicThumb.Name = "Thumb"
-musicThumb.AnchorPoint = Vector2.new(0, 0.5)
-musicThumb.Position = UDim2.new(1, -21, 0.5, 0)
-musicThumb.Size = UDim2.fromOffset(18, 18)
-musicThumb.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-musicThumb.BorderSizePixel = 0
-musicThumb.Parent = musicToggle
-
-local mtCorner2 = Instance.new("UICorner")
-mtCorner2.CornerRadius = UDim.new(1, 0)
-mtCorner2.Parent = musicThumb
-
-local isMusicPlaying = true
-local function setMusic(enabled)
-    isMusicPlaying = enabled
-    if isMusicPlaying then
-        pcall(function() MusicSound:Resume() end)
-        musicStatus.Text = "ស្ថានភាព៖ បើក"
-        musicStatus.TextColor3 = Color3.fromRGB(80, 255, 140)
-        tween(musicToggle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(0, 140, 255)})
-        tween(musicThumb, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-            Position = UDim2.new(1, -21, 0.5, 0)
-        })
-    else
-        pcall(function() MusicSound:Pause() end)
-        musicStatus.Text = "ស្ថានភាព៖ បិទ"
-        musicStatus.TextColor3 = Color3.fromRGB(130, 150, 180)
-        tween(musicToggle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(24, 40, 68)})
-        tween(musicThumb, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
-            Position = UDim2.new(0, 3, 0.5, 0)
-        })
-    end
-end
-
-musicToggle.Activated:Connect(function()
-    AkiraPlayClick()
-    setMusic(not isMusicPlaying)
-end)
-
--- ============================================================
--- DRAGGING MENU SYSTEM (TOPBAR & DRAG DOT)[span_6](start_span)[span_6](end_span)
--- ============================================================
-local dragDot = Instance.new("ImageButton")
-dragDot.Name = "DragDot"
-dragDot.AnchorPoint = Vector2.new(0.5, 0)
-dragDot.Position = UDim2.new(0, 160, 1, -12)
-dragDot.Size = UDim2.fromOffset(16, 16)
-dragDot.BackgroundColor3 = Color3.fromRGB(0, 140, 255)
-dragDot.BorderSizePixel = 0
-dragDot.AutoButtonColor = false
-dragDot.Active = true
-dragDot.Parent = main
-
-local dotCorner = Instance.new("UICorner")
-dotCorner.CornerRadius = UDim.new(1, 0)
-dotCorner.Parent = dragDot
-
-local dotStroke = Instance.new("UIStroke")
-dotStroke.Thickness = 2
-dotStroke.Color = Color3.fromRGB(4, 9, 20)
-dotStroke.Parent = dragDot
-
-local isMainDragging = false
-local mainDragStart = nil
-local mainStartPos = nil
-
-local function bindDragger(obj)
-    obj.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            isMainDragging = true
-            mainDragStart = input.Position
-            mainStartPos = main.Position
-
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    isMainDragging = false
-                end
-            end)
-        end
-    end)
-end
-
-bindDragger(top)
-bindDragger(dragDot)
-
-UIS.InputChanged:Connect(function(input)
-    if (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) and isMainDragging and mainDragStart and mainStartPos then
-        local delta = input.Position - mainDragStart
-        main.Position = UDim2.new(
-            mainStartPos.X.Scale,
-            mainStartPos.X.Offset + delta.X,
-            mainStartPos.Y.Scale,
-            mainStartPos.Y.Offset + delta.Y
-        )
-    end
-end)
-
-UIS.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        isMainDragging = false
+UIS.InputChanged:Connect(function(inp)
+    if (inp.UserInputType == Enum.UserInputType.MouseMovement or inp.UserInputType == Enum.UserInputType.Touch) and mDragging and mStart and mPos then
+        local delta = inp.Position - mStart
+        main.Position = UDim2.new(mPos.X.Scale, mPos.X.Offset + delta.X, mPos.Y.Scale, mPos.Y.Offset + delta.Y)
     end
 end)
 
 -- ============================================================
--- FLOATING LOGO BUTTON (DRAGGABLE & CLICKABLE FIX)[span_7](start_span)[span_7](end_span)
+-- FLOATING LOGO (ពេល MINIMIZE អាច DRAG បាន)[span_3](start_span)[span_3](end_span)
 -- ============================================================
 local openButton = Instance.new("ImageButton")
-openButton.Name = "OpenAkiraLogo"
+openButton.Name = "OpenLogo"
 openButton.AnchorPoint = Vector2.new(0.5, 0.5)
-openButton.Position = UDim2.new(1, -50, 0.5, 0)
-openButton.Size = UDim2.fromOffset(56, 56)
+openButton.Position = UDim2.new(1, -40, 0.5, 0)
+openButton.Size = UDim2.fromOffset(48, 48)
 openButton.BackgroundColor3 = Color3.fromRGB(4, 9, 20)
 openButton.Image = "rbxassetid://97330468088484"
-openButton.AutoButtonColor = false
 openButton.Active = true
 openButton.Visible = false
 openButton.Parent = gui
 
-local obCorner = Instance.new("UICorner")
-obCorner.CornerRadius = UDim.new(1, 0)
-obCorner.Parent = openButton
+local obC = Instance.new("UICorner")
+obC.CornerRadius = UDim.new(1, 0)
+obC.Parent = openButton
 
-local obStroke = Instance.new("UIStroke")
-obStroke.Thickness = 2.5
-obStroke.Color = Color3.fromRGB(0, 140, 255)
-obStroke.Parent = openButton
+local obS = Instance.new("UIStroke")
+obS.Thickness = 2
+obS.Color = Color3.fromRGB(0, 140, 255)
+obS.Parent = openButton
 
-local function toggleGUI(visible)
-    if visible then
+local function setMenuVisible(v)
+    if v then
         openButton.Visible = false
         main.Visible = true
         main.Position = UDim2.fromScale(0.5, 0.5)
-        scale.Scale = 0.75
-        tween(scale, TweenInfo.new(0.28, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-            Scale = 0.92
-        })
     else
-        local hideTween = tween(scale, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
-            Scale = 0.7
-        })
-        hideTween.Completed:Wait()
         main.Visible = false
-        scale.Scale = 0.92
         openButton.Visible = true
     end
 end
 
-closeBtn.Activated:Connect(function()
-    AkiraPlayClick()
-    toggleGUI(false)
-end)
+closeBtn.Activated:Connect(function() AkiraPlayClick(); setMenuVisible(false) end)
+minimizeBtn.Activated:Connect(function() AkiraPlayClick(); setMenuVisible(false) end)
 
-minimizeBtn.Activated:Connect(function()
-    AkiraPlayClick()
-    toggleGUI(false)
-end)
+local lDragging = false
+local lStart, lPos
+local lMoved = false
 
-local logoDragging = false
-local logoDragStart = nil
-local logoStartPos = nil
-local hasMoved = false
-
-openButton.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        logoDragging = true
-        hasMoved = false
-        logoDragStart = input.Position
-        logoStartPos = openButton.Position
-
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                logoDragging = false
-            end
-        end)
+openButton.InputBegan:Connect(function(inp)
+    if inp.UserInputType == Enum.UserInputType.MouseButton1 or inp.UserInputType == Enum.UserInputType.Touch then
+        lDragging = true
+        lMoved = false
+        lStart = inp.Position
+        lPos = openButton.Position
     end
 end)
 
-openButton.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-        if logoDragging and logoDragStart and logoStartPos then
-            local delta = input.Position - logoDragStart
-            if delta.Magnitude > 6 then
-                hasMoved = true
-            end
-
-            local camera = workspace.CurrentCamera
-            local viewport = camera and camera.ViewportSize or Vector2.new(1920, 1080)
-            local btnSize = openButton.AbsoluteSize.X * 0.5
-
-            local rawX = logoStartPos.X.Offset + delta.X
-            local rawY = logoStartPos.Y.Offset + delta.Y
-
-            local clampedX = math.clamp(rawX, btnSize + 10, viewport.X - btnSize - 10)
-            local clampedY = math.clamp(rawY, btnSize + 10, viewport.Y - btnSize - 10)
-
-            openButton.Position = UDim2.new(0, clampedX, 0, clampedY)
+openButton.InputChanged:Connect(function(inp)
+    if inp.UserInputType == Enum.UserInputType.MouseMovement or inp.UserInputType == Enum.UserInputType.Touch then
+        if lDragging and lStart and lPos then
+            local delta = inp.Position - lStart
+            if delta.Magnitude > 6 then lMoved = true end
+            openButton.Position = UDim2.new(0, lPos.X.Offset + delta.X, 0, lPos.Y.Offset + delta.Y)
         end
     end
 end)
 
-openButton.InputEnded:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        logoDragging = false
-        if not hasMoved then
+openButton.InputEnded:Connect(function(inp)
+    if inp.UserInputType == Enum.UserInputType.MouseButton1 or inp.UserInputType == Enum.UserInputType.Touch then
+        lDragging = false
+        if not lMoved then
             AkiraPlayClick()
-            toggleGUI(true)
+            setMenuVisible(true)
         end
-        hasMoved = false
+        lMoved = false
     end
 end)
 
 -- ============================================================
--- RGB RAINBOW & AKIRA SCRIPT LIVE ANIMATION[span_8](start_span)[span_8](end_span)
+-- RGB ANIMATION[span_4](start_span)[span_4](end_span)
 -- ============================================================
-local rgbStrokeGradient = Instance.new("UIGradient")
-rgbStrokeGradient.Name = "RGBStrokeFlow"
-rgbStrokeGradient.Rotation = 0
-rgbStrokeGradient.Color = ColorSequence.new({
+local rgbGrad = Instance.new("UIGradient")
+rgbGrad.Color = ColorSequence.new({
     ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 0, 0)),
-    ColorSequenceKeypoint.new(0.17, Color3.fromRGB(255, 127, 0)),
-    ColorSequenceKeypoint.new(0.33, Color3.fromRGB(255, 255, 0)),
-    ColorSequenceKeypoint.new(0.50, Color3.fromRGB(0, 255, 0)),
-    ColorSequenceKeypoint.new(0.67, Color3.fromRGB(0, 180, 255)),
-    ColorSequenceKeypoint.new(0.83, Color3.fromRGB(150, 0, 255)),
+    ColorSequenceKeypoint.new(0.20, Color3.fromRGB(255, 200, 0)),
+    ColorSequenceKeypoint.new(0.40, Color3.fromRGB(0, 255, 100)),
+    ColorSequenceKeypoint.new(0.60, Color3.fromRGB(0, 180, 255)),
+    ColorSequenceKeypoint.new(0.80, Color3.fromRGB(180, 0, 255)),
     ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 0, 0))
 })
-rgbStrokeGradient.Parent = mainStroke
+rgbGrad.Parent = mainStroke
 
-local logoRGB = rgbStrokeGradient:Clone()
-logoRGB.Parent = logoCardStroke
-
-local dotRGB = rgbStrokeGradient:Clone()
-dotRGB.Parent = dotStroke
+local logoRGB = rgbGrad:Clone()
+logoRGB.Parent = lcStroke
 
 task.spawn(function()
     local rot = 0
     while gui.Parent and main.Parent do
         rot = (rot + 3) % 360
-        rgbStrokeGradient.Rotation = rot
+        rgbGrad.Rotation = rot
         if logoRGB.Parent then logoRGB.Rotation = rot end
-        if dotRGB.Parent then dotRGB.Rotation = rot end
         task.wait(0.03)
-    end
-end)
-
-local akiraGradient = Instance.new("UIGradient")
-akiraGradient.Name = "AkiraTextRGB"
-akiraGradient.Rotation = 0
-akiraGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0.00, Color3.fromRGB(0, 200, 255)),
-    ColorSequenceKeypoint.new(0.25, Color3.fromRGB(255, 255, 255)),
-    ColorSequenceKeypoint.new(0.50, Color3.fromRGB(255, 0, 128)),
-    ColorSequenceKeypoint.new(0.75, Color3.fromRGB(255, 255, 255)),
-    ColorSequenceKeypoint.new(1.00, Color3.fromRGB(0, 200, 255))
-})
-akiraGradient.Offset = Vector2.new(-1.2, 0)
-akiraGradient.Parent = title
-
-task.spawn(function()
-    while gui.Parent and title.Parent do
-        akiraGradient.Offset = Vector2.new(-1.2, 0)
-        local t = tween(akiraGradient, TweenInfo.new(1.8, Enum.EasingStyle.Linear), {
-            Offset = Vector2.new(1.2, 0)
-        })
-        t.Completed:Wait()
-        task.wait(0.8)
-    end
-end)
-
-task.spawn(function()
-    local basePos = title.Position
-    while gui.Parent and title.Parent do
-        local up = tween(title, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-            Position = UDim2.new(basePos.X.Scale, basePos.X.Offset, basePos.Y.Scale, basePos.Y.Offset - 2)
-        })
-        up.Completed:Wait()
-
-        local down = tween(title, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-            Position = UDim2.new(basePos.X.Scale, basePos.X.Offset, basePos.Y.Scale, basePos.Y.Offset + 1)
-        })
-        down.Completed:Wait()
     end
 end)
