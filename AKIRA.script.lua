@@ -1,9 +1,8 @@
 --[[
-    AKIRA SCRIPT HUB • FULL ALL-IN-ONE EDITION
-    - រូបរាងថ្មី Modern Dark Blue + Neon Stroke[span_4](start_span)[span_4](end_span)
-    - ភ្លើង RGB Rainbow រត់តាមគែម និង Live Float Text Animation[span_5](start_span)[span_5](end_span)
-    - ប៊ូតុង Toggle Switch សម្រាប់ Anti-Hit និង ចម្រៀង (Asset ID: 110960672338793)[span_6](start_span)[span_6](end_span)
-    - អាចទាញអូសបានទាំងផ្ទាំង Menu និងប៊ូតុង Logo អណ្ដែត (Draggable Fix)[span_7](start_span)[span_7](end_span)[span_8](start_span)[span_8](end_span)
+    AKIRA SCRIPT HUB • FIXED & WORKING EDITION (MOBILE COMPATIBLE)
+    - ជួសជុលបញ្ហា Error បង្កើត Folder ក្នុង SoundService
+    - ធានាថាផ្ទាំង Menu បង្ហាញភ្លាមៗ ១០០%
+    - រក្សាស្ទីល Neon Blue, RGB Flow, Dragging និងចម្រៀង BGM ពេញលេញ[span_1](start_span)[span_1](end_span)
 ]]
 
 local Players = game:GetService("Players")
@@ -13,43 +12,24 @@ local TweenService = game:GetService("TweenService")
 local SoundService = game:GetService("SoundService")
 local ProximityPromptService = game:GetService("ProximityPromptService")
 
-local Player = Players.LocalPlayer
-local PlayerGui = Player:WaitForChild("PlayerGui")
-local GuiParent = (gethui and gethui()) or (syn and syn.protect_gui and PlayerGui) or PlayerGui
+local Player = Players.LocalPlayer or Players.PlayerAdded:Wait()
+local PlayerGui = Player:WaitForChild("PlayerGui", 10)
 
--- សំឡេងចុច
-local AkiraSoundFolder = SoundService:FindFirstChild("AkiraSounds") or Instance.new("Folder")
-AkiraSoundFolder.Name = "AkiraSounds"
-AkiraSoundFolder.Parent = SoundService
-
-local AkiraClickSound = AkiraSoundFolder:FindFirstChild("AkiraClick") or Instance.new("Sound")
-AkiraClickSound.Name = "AkiraClick"
-AkiraClickSound.SoundId = "rbxassetid://6026984224"
-AkiraClickSound.Volume = 0.30
-AkiraClickSound.Parent = AkiraSoundFolder
-
-local function AkiraPlayClick(speed, volume)
-    pcall(function()
-        AkiraClickSound:Stop()
-        AkiraClickSound.TimePosition = 0
-        AkiraClickSound.PlaybackSpeed = speed or 1
-        AkiraClickSound.Volume = volume or 0.30
-        AkiraClickSound:Play()
-    end)
-end
-
--- បទចម្រៀង Background Music
-local MusicSound = AkiraSoundFolder:FindFirstChild("AkiraBGMusic") or Instance.new("Sound")
-MusicSound.Name = "AkiraBGMusic"
-MusicSound.SoundId = "rbxassetid://110960672338793"
-MusicSound.Volume = 0.35
-MusicSound.Looped = true
-MusicSound.Parent = AkiraSoundFolder
-
+-- សុវត្ថិភាព GuiParent (ការពារ crash លើគ្រប់ Executor)
+local GuiParent = nil
 pcall(function()
-    MusicSound:Play()
+    if gethui then
+        GuiParent = gethui()
+    elseif syn and syn.protect_gui then
+        syn.protect_gui(PlayerGui)
+        GuiParent = PlayerGui
+    else
+        GuiParent = PlayerGui
+    end
 end)
+if not GuiParent then GuiParent = PlayerGui end
 
+-- លុបផ្ទាំងចាស់បើមាន
 local old = GuiParent:FindFirstChild("AkiraScriptHub")
 if old then
     old:Destroy()
@@ -76,6 +56,38 @@ local scale = Instance.new("UIScale")
 scale.Scale = 0.92
 scale.Parent = gui
 
+-- បង្កើត Sound ផ្ទុកក្នុង GUI ផ្ទាល់ ដើម្បីការពារ Error Permissions
+local AkiraClickSound = Instance.new("Sound")
+AkiraClickSound.Name = "AkiraClick"
+AkiraClickSound.SoundId = "rbxassetid://6026984224"
+AkiraClickSound.Volume = 0.30
+AkiraClickSound.Parent = gui
+
+local function AkiraPlayClick(speed, volume)
+    pcall(function()
+        AkiraClickSound:Stop()
+        AkiraClickSound.TimePosition = 0
+        AkiraClickSound.PlaybackSpeed = speed or 1
+        AkiraClickSound.Volume = volume or 0.30
+        AkiraClickSound:Play()
+    end)
+end
+
+-- ចម្រៀង BGM (Asset ID: 110960672338793)
+local MusicSound = Instance.new("Sound")
+MusicSound.Name = "AkiraBGMusic"
+MusicSound.SoundId = "rbxassetid://110960672338793"
+MusicSound.Volume = 0.35
+MusicSound.Looped = true
+MusicSound.Parent = gui
+
+task.spawn(function()
+    pcall(function()
+        MusicSound:Play()
+    end)
+end)
+
+-- ផ្ទាំង Menu ធំ (Main Frame)
 local main = Instance.new("Frame")
 main.Name = "Main"
 main.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -84,6 +96,7 @@ main.Size = UDim2.fromOffset(560, 310)
 main.BackgroundColor3 = Color3.fromRGB(4, 9, 20)
 main.BorderSizePixel = 0
 main.Active = true
+main.Visible = true
 main.Parent = gui
 
 local mainCorner = Instance.new("UICorner")
@@ -134,7 +147,7 @@ logoImage.Size = UDim2.fromOffset(40, 40)
 logoImage.Image = "rbxassetid://97330468088484"
 logoImage.Parent = logoCard
 
--- Title & Subtitle
+-- Header Title & Subtitle
 local title = Instance.new("TextLabel")
 title.Name = "TitleText"
 title.BackgroundTransparency = 1
@@ -352,7 +365,7 @@ tab3.Activated:Connect(function() AkiraPlayClick(); switchTab("ព័ត៌ម�
 switchTab("ស្គ្រីប")
 
 -- ============================================================
--- ANTI-HIT CARD & TOGGLE SWITCH (SCRIPTS TAB)[span_9](start_span)[span_9](end_span)
+-- ANTI-HIT CARD & TOGGLE SWITCH (SCRIPTS TAB)[span_2](start_span)[span_2](end_span)
 -- ============================================================
 local AntiHitEnabled = false
 local IsAntiHitRunning = false
@@ -402,7 +415,7 @@ ahTitle.Position = UDim2.fromOffset(62, 11)
 ahTitle.Size = UDim2.new(1, -140, 0, 20)
 ahTitle.Font = Enum.Font.FredokaOne
 ahTitle.RichText = true
-ahTitle.Text = 'ការការពារការវាយ <font color="rgb(0, 210, 255)">(ANTI-HIT)</font>[span_10](start_span)'[span_10](end_span)
+ahTitle.Text = 'ការការពារការវាយ <font color="rgb(0, 210, 255)">(ANTI-HIT)</font>[span_3](start_span)'[span_3](end_span)
 ahTitle.TextSize = 13
 ahTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
 ahTitle.TextXAlignment = Enum.TextXAlignment.Left
@@ -413,7 +426,7 @@ ahStatus.BackgroundTransparency = 1
 ahStatus.Position = UDim2.fromOffset(62, 31)
 ahStatus.Size = UDim2.new(1, -140, 0, 16)
 ahStatus.Font = Enum.Font.FredokaOne
-ahStatus.Text = "ស្ថានភាព៖ បិទ[span_11](start_span)"[span_11](end_span)
+ahStatus.Text = "ស្ថានភាព៖ បិទ[span_4](start_span)"[span_4](end_span)
 ahStatus.TextSize = 10
 ahStatus.TextColor3 = Color3.fromRGB(130, 150, 180)
 ahStatus.TextXAlignment = Enum.TextXAlignment.Left
@@ -457,7 +470,7 @@ local function setToggle(state)
             Position = UDim2.new(1, -21, 0.5, 0)
         })
     else
-        ahStatus.Text = "ស្ថានភាព៖ បិទ[span_12](start_span)"[span_12](end_span)
+        ahStatus.Text = "ស្ថានភាព៖ បិទ[span_5](start_span)"[span_5](end_span)
         ahStatus.TextColor3 = Color3.fromRGB(130, 150, 180)
         tween(toggleTrack, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(24, 40, 68)})
         tween(toggleThumb, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
@@ -471,7 +484,6 @@ toggleTrack.Activated:Connect(function()
     setToggle(not AntiHitEnabled)
 end)
 
--- Anti-Hit Teleport Route
 local TeleportPoints = {
     Vector3.new(500.62, 241.28, -366.64),
     Vector3.new(504.45, 155.80, -366.35),
@@ -630,7 +642,7 @@ musicToggle.Activated:Connect(function()
 end)
 
 -- ============================================================
--- DRAGGING MENU SYSTEM (TOPBAR & DRAG DOT)[span_13](start_span)[span_13](end_span)
+-- DRAGGING MENU SYSTEM (TOPBAR & DRAG DOT)[span_6](start_span)[span_6](end_span)
 -- ============================================================
 local dragDot = Instance.new("ImageButton")
 dragDot.Name = "DragDot"
@@ -694,7 +706,7 @@ UIS.InputEnded:Connect(function(input)
 end)
 
 -- ============================================================
--- FLOATING LOGO BUTTON (DRAGGABLE & CLICKABLE FIX)[span_14](start_span)[span_14](end_span)
+-- FLOATING LOGO BUTTON (DRAGGABLE & CLICKABLE FIX)[span_7](start_span)[span_7](end_span)
 -- ============================================================
 local openButton = Instance.new("ImageButton")
 openButton.Name = "OpenAkiraLogo"
@@ -802,7 +814,7 @@ openButton.InputEnded:Connect(function(input)
 end)
 
 -- ============================================================
--- RGB RAINBOW & AKIRA SCRIPT LIVE ANIMATION[span_15](start_span)[span_15](end_span)
+-- RGB RAINBOW & AKIRA SCRIPT LIVE ANIMATION[span_8](start_span)[span_8](end_span)
 -- ============================================================
 local rgbStrokeGradient = Instance.new("UIGradient")
 rgbStrokeGradient.Name = "RGBStrokeFlow"
