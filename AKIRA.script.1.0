@@ -1251,14 +1251,125 @@ RunService.Stepped:Connect(function()
     end
 end)
 -- ============================================================
--- ពិនិត្យថា៖ កំពុងកាន់ EGG + មានមេកំពុងដេញ (លួចពងពិតប្រាកដ)
+-- AUTO RUN TO SAFE ZONE (SMART ESCAPE - DROP EGG CANCEL FIX)
 -- ============================================================
+local AutoSafeZoneEnabled = false
+local IsRunningToSafeZone = false
 
--- ១. ឆែកមើលប៊ូតុង Drop
-local function isDropButtonActive()
-    for _, screenGui in ipairs(PlayerGui:GetChildren()) do
-        if screenGui:IsA("ScreenGui") and screenGui.Name ~= "AkiraScriptHub" and screenGui.Enabled then
-            for _, btn in ipairs(screenGui:GetDescendants()) do
+local safeZoneCard = Instance.new("Frame")
+safeZoneCard.Name = "SafeZoneCard"
+safeZoneCard.Size = UDim2.new(1, -10, 0, 60)
+safeZoneCard.BackgroundColor3 = Color3.fromRGB(7, 16, 32)
+safeZoneCard.BorderSizePixel = 0
+safeZoneCard.Parent = scriptsPage
+
+local szcCorner = Instance.new("UICorner")
+szcCorner.CornerRadius = UDim.new(0, 12)
+szcCorner.Parent = safeZoneCard
+
+local szcStroke = Instance.new("UIStroke")
+szcStroke.Thickness = 1.2
+szcStroke.Color = Color3.fromRGB(0, 140, 255)
+szcStroke.Transparency = 0.5
+szcStroke.Parent = safeZoneCard
+
+local szcIconBox = Instance.new("Frame")
+szcIconBox.Position = UDim2.fromOffset(8, 8)
+szcIconBox.Size = UDim2.fromOffset(44, 44)
+szcIconBox.BackgroundColor3 = Color3.fromRGB(12, 26, 52)
+szcIconBox.BorderSizePixel = 0
+szcIconBox.Parent = safeZoneCard
+
+local szciCorner = Instance.new("UICorner")
+szciCorner.CornerRadius = UDim.new(0, 10)
+szciCorner.Parent = szcIconBox
+
+local szcIcon = Instance.new("ImageLabel")
+szcIcon.BackgroundTransparency = 1
+szcIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+szcIcon.Position = UDim2.fromScale(0.5, 0.5)
+szcIcon.Size = UDim2.fromOffset(24, 24)
+szcIcon.Image = "rbxassetid://10734950309"
+szcIcon.ImageColor3 = Color3.fromRGB(0, 210, 255)
+szcIcon.Parent = szcIconBox
+
+local szcTitle = Instance.new("TextLabel")
+szcTitle.BackgroundTransparency = 1
+szcTitle.Position = UDim2.fromOffset(62, 11)
+szcTitle.Size = UDim2.new(1, -140, 0, 20)
+szcTitle.Font = Enum.Font.FredokaOne
+szcTitle.RichText = true
+szcTitle.Text = 'រត់ចូល Safe Zone <font color="rgb(0, 210, 255)">(AUTO ESCAPE)</font>'
+szcTitle.TextSize = 13
+szcTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+szcTitle.TextXAlignment = Enum.TextXAlignment.Left
+szcTitle.Parent = safeZoneCard
+
+local szcStatus = Instance.new("TextLabel")
+szcStatus.BackgroundTransparency = 1
+szcStatus.Position = UDim2.fromOffset(62, 31)
+szcStatus.Size = UDim2.new(1, -140, 0, 16)
+szcStatus.Font = Enum.Font.FredokaOne
+szcStatus.Text = "ស្ថានភាព៖ បិទ"
+szcStatus.TextSize = 10
+szcStatus.TextColor3 = Color3.fromRGB(130, 150, 180)
+szcStatus.TextXAlignment = Enum.TextXAlignment.Left
+szcStatus.Parent = safeZoneCard
+
+local szcToggle = Instance.new("TextButton")
+szcToggle.AnchorPoint = Vector2.new(1, 0.5)
+szcToggle.Position = UDim2.new(1, -14, 0.5, 0)
+szcToggle.Size = UDim2.fromOffset(48, 24)
+szcToggle.BackgroundColor3 = Color3.fromRGB(24, 40, 68)
+szcToggle.BorderSizePixel = 0
+szcToggle.Text = ""
+szcToggle.AutoButtonColor = false
+szcToggle.Parent = safeZoneCard
+
+local szctCorner = Instance.new("UICorner")
+szctCorner.CornerRadius = UDim.new(1, 0)
+szctCorner.Parent = szcToggle
+
+local szcThumb = Instance.new("Frame")
+szcThumb.AnchorPoint = Vector2.new(0, 0.5)
+szcThumb.Position = UDim2.new(0, 3, 0.5, 0)
+szcThumb.Size = UDim2.fromOffset(18, 18)
+szcThumb.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+szcThumb.BorderSizePixel = 0
+szcThumb.Parent = szcToggle
+
+local szctbCorner = Instance.new("UICorner")
+szctbCorner.CornerRadius = UDim.new(1, 0)
+szctbCorner.Parent = szcThumb
+
+szcToggle.Activated:Connect(function()
+    AkiraPlayClick()
+    AutoSafeZoneEnabled = not AutoSafeZoneEnabled
+
+    if AutoSafeZoneEnabled then
+        szcStatus.Text = "ស្ថានភាព៖ រង់ចាំរើស Egg"
+        szcStatus.TextColor3 = Color3.fromRGB(80, 255, 140)
+        tween(szcToggle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(0, 140, 255)})
+        tween(szcThumb, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+            Position = UDim2.new(1, -21, 0.5, 0)
+        })
+    else
+        szcStatus.Text = "ស្ថានភាព៖ បិទ"
+        szcStatus.TextColor3 = Color3.fromRGB(130, 150, 180)
+        tween(szcToggle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(24, 40, 68)})
+        tween(szcThumb, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+            Position = UDim2.new(0, 3, 0.5, 0)
+        })
+        IsRunningToSafeZone = false
+    end
+end)
+
+-- ពិនិត្យមើលវត្តមានប៊ូតុង Drop ឬ Egg ជាប់ខ្លួន
+local function isStillHoldingEgg(character)
+    -- ១. ឆែកមើលប៊ូតុង Drop លើអេក្រង់ (UI)
+    for _, guiObj in ipairs(PlayerGui:GetChildren()) do
+        if guiObj:IsA("ScreenGui") and guiObj.Name ~= "AkiraScriptHub" and guiObj.Enabled then
+            for _, btn in ipairs(guiObj:GetDescendants()) do
                 if (btn:IsA("TextButton") or btn:IsA("TextLabel")) and btn.Visible then
                     local txt = string.lower(btn.Text)
                     if string.find(txt, "drop") then
@@ -1268,26 +1379,61 @@ local function isDropButtonActive()
             end
         end
     end
+
+    -- ២. ឆែកមើល Part ឬ Model ពងមាន់ជាប់នឹង Character
+    if character then
+        for _, child in ipairs(character:GetChildren()) do
+            local name = string.lower(child.Name)
+            if (child:IsA("Model") or child:IsA("BasePart")) and (string.find(name, "egg") or string.find(name, "ពង")) then
+                return true
+            end
+        end
+    end
+
     return false
 end
 
--- ២. ឆែកមើលថាតើមានមេកំពុងដេញតាមយើងដែរឬទេ?
-local function isMonsterChasingMe(myRoot)
+-- ស្វែងរកទីតាំង Safe Zone ដែលនៅជិតបំផុត
+local function getNearestSafeZone(myPos)
+    local targetPos = nil
+    local shortestDist = math.huge
+
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj:IsA("BasePart") and string.find(string.lower(obj.Name), "safe") then
+            local dist = (myPos - obj.Position).Magnitude
+            if dist < shortestDist then
+                shortestDist = dist
+                targetPos = obj.Position
+            end
+        end
+    end
+
+    if not targetPos then
+        targetPos = Vector3.new(500.62, 70.28, -366.64)
+    end
+
+    return targetPos
+end
+
+-- ស្វែងរកមេដែលកំពុងដេញ
+local function getNearestChaser(myRoot)
+    local nearestDist = math.huge
+    local monster = nil
+    
     for _, model in ipairs(workspace:GetChildren()) do
         if model:IsA("Model") and model ~= Player.Character then
             local hum = model:FindFirstChildOfClass("Humanoid")
             local root = model:FindFirstChild("HumanoidRootPart") or model:FindFirstChild("Torso")
-            -- ពិនិត្យមើលតែ Monster/NPC (មិនមែន Player គ្នាឯង)
             if hum and root and not Players:GetPlayerFromCharacter(model) then
                 local dist = (myRoot.Position - root.Position).Magnitude
-                -- ប្រសិនបើមេនៅក្បែរយើងក្នុងរង្វង់ 75 studs មានន័យថាយើងកំពុងលួចពងរបស់វាហើយ
-                if dist <= 75 and hum.Health > 0 then
-                    return true, model, dist
+                if dist < nearestDist then
+                    nearestDist = dist
+                    monster = model
                 end
             end
         end
     end
-    return false, nil, math.huge
+    return monster, nearestDist
 end
 
 -- ដំណើរការរត់ចូល Safe Zone
@@ -1297,39 +1443,37 @@ local function RunToSafety(character)
     if not humanoid or not root or IsRunningToSafeZone then return end
 
     IsRunningToSafeZone = true
-    szcStatus.Text = "ស្ថានភាព៖ កំពុងលួច Egg រត់ទៅ Safe Zone..."
+    szcStatus.Text = "ស្ថានភាព៖ កំពុងរត់គេចចូល Safe Zone..."
     szcStatus.TextColor3 = Color3.fromRGB(0, 210, 255)
 
     local targetSafeZone = getNearestSafeZone(root.Position)
 
     task.spawn(function()
         while AutoSafeZoneEnabled and IsRunningToSafeZone and character.Parent do
-            -- បើប៊ូតុង Drop បាត់ (ពងធ្លាក់) ឈប់រត់ភ្លាម!
-            if not isDropButtonActive() then
+            -- ពិនិត្យភ្លាមៗ៖ បើធ្លាក់ពង (ប៊ូតុង Drop បាត់ និងគ្មាន Egg ក្នុងខ្លួន) ឈប់រត់ភ្លាម!
+            if not isStillHoldingEgg(character) then
                 humanoid.WalkSpeed = 16
-                humanoid:MoveTo(root.Position)
-                szcStatus.Text = "ស្ថានភាព៖ Egg របូតពីដៃ (ឈប់រត់)"
+                humanoid:MoveTo(root.Position) -- បញ្ឈប់ជំហានដើរ
+                szcStatus.Text = "ស្ថានភាព៖ ពងធ្លាក់ពីដៃ (ឈប់រត់)"
                 szcStatus.TextColor3 = Color3.fromRGB(255, 120, 120)
                 break
             end
 
             local distToSafe = (root.Position - targetSafeZone).Magnitude
-            if distToSafe <= 12 then
-                -- ដល់ Safe Zone ជោគជ័យ
-                szcStatus.Text = "ស្ថានភាព៖ ដល់ Safe Zone ហើយ!"
+            if distToSafe <= 10 then
+                szcStatus.Text = "ស្ថានភាព៖ ដល់ Safe Zone សុវត្ថិភាពហើយ!"
                 szcStatus.TextColor3 = Color3.fromRGB(80, 255, 140)
                 break
             end
 
-            -- គណនាល្បឿនគេចមេ
-            local isChasing, monster, mDist = isMonsterChasingMe(root)
+            -- គណនាល្បឿនឆ្លាតវៃកុំឱ្យមេដេញទាន់
+            local monster, mDist = getNearestChaser(root)
             local targetSpeed = 22
 
-            if isChasing and mDist < 45 then
+            if monster and mDist < 35 then
                 local mHum = monster:FindFirstChildOfClass("Humanoid")
                 local mSpeed = mHum and mHum.WalkSpeed or 20
-                -- រត់លឿនជាងមេតែ 3-4 studs ដើម្បីកុំឱ្យគេដឹង
-                targetSpeed = math.clamp(mSpeed + 3, 24, 38)
+                targetSpeed = math.clamp(mSpeed + 3, 23, 36)
             end
 
             humanoid.WalkSpeed = targetSpeed
@@ -1342,22 +1486,25 @@ local function RunToSafety(character)
         IsRunningToSafeZone = false
         task.wait(2)
         if AutoSafeZoneEnabled then
-            szcStatus.Text = "ស្ថានភាព៖ រង់ចាំលួច Egg"
+            szcStatus.Text = "ស្ថានភាព៖ រង់ចាំរើស Egg"
             szcStatus.TextColor3 = Color3.fromRGB(80, 255, 140)
         end
     end)
 end
 
--- តាមដាន៖ ទាល់តែមានប៊ូតុង Drop ផង និងមានមេដេញក្បែរខ្លួនផង ទើបចាប់ផ្ដើម Auto Run
-RunService.Heartbeat:Connect(function()
-    if AutoSafeZoneEnabled and not IsRunningToSafeZone then
-        local char = Player.Character
-        local root = char and char:FindFirstChild("HumanoidRootPart")
-        if char and root then
-            -- លក្ខខណ្ឌទី១៖ មានប៊ូតុង Drop
-            -- លក្ខខណ្ឌទី២៖ មានមេ/Monster នៅក្បែរ (កំពុងលួចក្នុងសំបុកមេ)
-            if isDropButtonActive() and isMonsterChasingMe(root) then
-                RunToSafety(char)
+-- ចាប់សញ្ញាពេលរើសពងមាន់ (Egg)
+ProximityPromptService.PromptTriggered:Connect(function(prompt, p)
+    if p == Player and AutoSafeZoneEnabled and not IsRunningToSafeZone then
+        local pName = string.lower(prompt.ObjectText .. " " .. prompt.ActionText .. " " .. prompt.Name)
+        if string.find(pName, "egg") or string.find(pName, "steal") or string.find(pName, "take") or string.find(pName, "pick") then
+            local char = Player.Character
+            if char then
+                -- រង់ចាំបន្តិចឱ្យពងចូលដៃ និងប៊ូតុង Drop បង្ហាញសិន
+                task.delay(0.2, function()
+                    if isStillHoldingEgg(char) then
+                        RunToSafety(char)
+                    end
+                end)
             end
         end
     end
