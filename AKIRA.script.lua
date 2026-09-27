@@ -669,3 +669,88 @@ openButton.InputEnded:Connect(function(input)
         hasMoved = false
     end
 end)
+-- ============================================================
+-- LIVE MENU ANIMATIONS (EFFECTS រស់រវើក)
+-- ============================================================
+
+-- ១. ពន្លឺដកដង្ហើមលើស៊ុម Menu (Breathing Stroke Glow)
+task.spawn(function()
+    while gui.Parent and main.Parent do
+        local glowIn = tween(mainStroke, TweenInfo.new(1.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+            Color = Color3.fromRGB(0, 210, 255),
+            Transparency = 0.05
+        })
+        glowIn.Completed:Wait()
+
+        local glowOut = tween(mainStroke, TweenInfo.new(1.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+            Color = Color3.fromRGB(0, 110, 210),
+            Transparency = 0.45
+        })
+        glowOut.Completed:Wait()
+    end
+end)
+
+-- ២. ពន្លឺចាំងកាត់អក្សរ AKIRA SCRIPT (Title Shimmer Wave)
+local titleGrad = Instance.new("UIGradient")
+titleGrad.Rotation = 0
+titleGrad.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 255, 255)),
+    ColorSequenceKeypoint.new(0.40, Color3.fromRGB(255, 255, 255)),
+    ColorSequenceKeypoint.new(0.50, Color3.fromRGB(0, 235, 255)),
+    ColorSequenceKeypoint.new(0.60, Color3.fromRGB(255, 255, 255)),
+    ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 255, 255))
+})
+titleGrad.Offset = Vector2.new(-1.2, 0)
+titleGrad.Parent = title
+
+task.spawn(function()
+    while gui.Parent and title.Parent do
+        titleGrad.Offset = Vector2.new(-1.2, 0)
+        local shimmer = tween(titleGrad, TweenInfo.new(2.2, Enum.EasingStyle.Linear), {
+            Offset = Vector2.new(1.2, 0)
+        })
+        shimmer.Completed:Wait()
+        task.wait(1.5) -- ផ្អាកបន្តិចសិនមុននឹងចាំងម្ដងទៀត
+    end
+end)
+
+-- ៣. ពន្លឺរលកកាត់លើ Anti-Hit Card (Card Shimmer)
+local cardGrad = Instance.new("UIGradient")
+cardGrad.Rotation = 25
+cardGrad.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0.00, Color3.fromRGB(7, 16, 32)),
+    ColorSequenceKeypoint.new(0.45, Color3.fromRGB(7, 16, 32)),
+    ColorSequenceKeypoint.new(0.50, Color3.fromRGB(15, 45, 90)),
+    ColorSequenceKeypoint.new(0.55, Color3.fromRGB(7, 16, 32)),
+    ColorSequenceKeypoint.new(1.00, Color3.fromRGB(7, 16, 32))
+})
+cardGrad.Offset = Vector2.new(-1.5, 0)
+cardGrad.Parent = antiHitCard
+
+task.spawn(function()
+    while gui.Parent and antiHitCard.Parent do
+        cardGrad.Offset = Vector2.new(-1.5, 0)
+        local sweep = tween(cardGrad, TweenInfo.new(2.6, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {
+            Offset = Vector2.new(1.5, 0)
+        })
+        sweep.Completed:Wait()
+        task.wait(2)
+    end
+end)
+
+-- ៤. ចលនាអណ្ដែតលើ Logo Akira ពេល Minimize (Breathe Floating Glow)
+task.spawn(function()
+    while gui.Parent and openButton.Parent do
+        local floatGlow = tween(obStroke, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+            Color = Color3.fromRGB(0, 240, 255),
+            Thickness = 3
+        })
+        floatGlow.Completed:Wait()
+
+        local floatFade = tween(obStroke, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+            Color = Color3.fromRGB(0, 110, 220),
+            Thickness = 2
+        })
+        floatFade.Completed:Wait()
+    end
+end)
