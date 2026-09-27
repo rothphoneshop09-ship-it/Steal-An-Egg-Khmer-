@@ -1,8 +1,9 @@
 --[[
-    AKIRA SCRIPT HUB • FULL FIX EDITION
-    - ស្ទីល UI ថ្មីតាមរូបភាព (Modern Dark Blue / Cyan Glow)
-    - ជួសជុល Icon បាត់ តាមរយៈ Asset ID ផ្ទាល់
-    - ជួសជុលការ Drag & Drop ទាំងផ្ទាំង Menu និងប៊ូតុង Logo Akira
+    AKIRA SCRIPT HUB • FULL ALL-IN-ONE EDITION
+    - រូបរាងថ្មី Modern Dark Blue + Neon Stroke[span_4](start_span)[span_4](end_span)
+    - ភ្លើង RGB Rainbow រត់តាមគែម និង Live Float Text Animation[span_5](start_span)[span_5](end_span)
+    - ប៊ូតុង Toggle Switch សម្រាប់ Anti-Hit និង ចម្រៀង (Asset ID: 110960672338793)[span_6](start_span)[span_6](end_span)
+    - អាចទាញអូសបានទាំងផ្ទាំង Menu និងប៊ូតុង Logo អណ្ដែត (Draggable Fix)[span_7](start_span)[span_7](end_span)[span_8](start_span)[span_8](end_span)
 ]]
 
 local Players = game:GetService("Players")
@@ -36,6 +37,18 @@ local function AkiraPlayClick(speed, volume)
         AkiraClickSound:Play()
     end)
 end
+
+-- បទចម្រៀង Background Music
+local MusicSound = AkiraSoundFolder:FindFirstChild("AkiraBGMusic") or Instance.new("Sound")
+MusicSound.Name = "AkiraBGMusic"
+MusicSound.SoundId = "rbxassetid://110960672338793"
+MusicSound.Volume = 0.35
+MusicSound.Looped = true
+MusicSound.Parent = AkiraSoundFolder
+
+pcall(function()
+    MusicSound:Play()
+end)
 
 local old = GuiParent:FindFirstChild("AkiraScriptHub")
 if old then
@@ -93,7 +106,7 @@ top.BackgroundTransparency = 1
 top.Active = true
 top.Parent = main
 
--- Logo Box ខាងឆ្វេងលើ
+-- Logo Box
 local logoCard = Instance.new("Frame")
 logoCard.Name = "LogoCard"
 logoCard.Position = UDim2.fromOffset(14, 10)
@@ -123,6 +136,7 @@ logoImage.Parent = logoCard
 
 -- Title & Subtitle
 local title = Instance.new("TextLabel")
+title.Name = "TitleText"
 title.BackgroundTransparency = 1
 title.Position = UDim2.fromOffset(74, 15)
 title.Size = UDim2.new(0, 200, 0, 22)
@@ -144,7 +158,7 @@ subtitle.TextColor3 = Color3.fromRGB(180, 195, 220)
 subtitle.TextXAlignment = Enum.TextXAlignment.Left
 subtitle.Parent = top
 
--- Controls: Minimize & Close
+-- Controls: Close / Minimize
 local function createTopControl(iconAssetId, xOffset)
     local btn = Instance.new("ImageButton")
     btn.Size = UDim2.fromOffset(26, 26)
@@ -338,7 +352,7 @@ tab3.Activated:Connect(function() AkiraPlayClick(); switchTab("ព័ត៌ម�
 switchTab("ស្គ្រីប")
 
 -- ============================================================
--- ANTI-HIT CARD & TOGGLE SWITCH
+-- ANTI-HIT CARD & TOGGLE SWITCH (SCRIPTS TAB)[span_9](start_span)[span_9](end_span)
 -- ============================================================
 local AntiHitEnabled = false
 local IsAntiHitRunning = false
@@ -388,7 +402,7 @@ ahTitle.Position = UDim2.fromOffset(62, 11)
 ahTitle.Size = UDim2.new(1, -140, 0, 20)
 ahTitle.Font = Enum.Font.FredokaOne
 ahTitle.RichText = true
-ahTitle.Text = 'ការការពារការវាយ <font color="rgb(0, 210, 255)">(ANTI-HIT)</font>'
+ahTitle.Text = 'ការការពារការវាយ <font color="rgb(0, 210, 255)">(ANTI-HIT)</font>[span_10](start_span)'[span_10](end_span)
 ahTitle.TextSize = 13
 ahTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
 ahTitle.TextXAlignment = Enum.TextXAlignment.Left
@@ -399,13 +413,12 @@ ahStatus.BackgroundTransparency = 1
 ahStatus.Position = UDim2.fromOffset(62, 31)
 ahStatus.Size = UDim2.new(1, -140, 0, 16)
 ahStatus.Font = Enum.Font.FredokaOne
-ahStatus.Text = "ស្ថានភាព៖ បិទ"
+ahStatus.Text = "ស្ថានភាព៖ បិទ[span_11](start_span)"[span_11](end_span)
 ahStatus.TextSize = 10
 ahStatus.TextColor3 = Color3.fromRGB(130, 150, 180)
 ahStatus.TextXAlignment = Enum.TextXAlignment.Left
 ahStatus.Parent = antiHitCard
 
--- Toggle Switch
 local toggleTrack = Instance.new("TextButton")
 toggleTrack.Name = "ToggleTrack"
 toggleTrack.AnchorPoint = Vector2.new(1, 0.5)
@@ -444,7 +457,7 @@ local function setToggle(state)
             Position = UDim2.new(1, -21, 0.5, 0)
         })
     else
-        ahStatus.Text = "ស្ថានភាព៖ បិទ"
+        ahStatus.Text = "ស្ថានភាព៖ បិទ[span_12](start_span)"[span_12](end_span)
         ahStatus.TextColor3 = Color3.fromRGB(130, 150, 180)
         tween(toggleTrack, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(24, 40, 68)})
         tween(toggleThumb, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
@@ -458,6 +471,7 @@ toggleTrack.Activated:Connect(function()
     setToggle(not AntiHitEnabled)
 end)
 
+-- Anti-Hit Teleport Route
 local TeleportPoints = {
     Vector3.new(500.62, 241.28, -366.64),
     Vector3.new(504.45, 155.80, -366.35),
@@ -499,7 +513,124 @@ ProximityPromptService.PromptTriggered:Connect(function(prompt, p)
 end)
 
 -- ============================================================
--- DRAGGING MENU SYSTEM (ទាញទម្លាក់ MENU តាម TOPBAR & INDICATOR)
+-- BACKGROUND MUSIC TOGGLE (CONFIG TAB)
+-- ============================================================
+local musicCard = Instance.new("Frame")
+musicCard.Name = "MusicCard"
+musicCard.Size = UDim2.new(1, -10, 0, 54)
+musicCard.BackgroundColor3 = Color3.fromRGB(7, 16, 32)
+musicCard.BorderSizePixel = 0
+musicCard.Parent = configPage
+
+local mcCorner = Instance.new("UICorner")
+mcCorner.CornerRadius = UDim.new(0, 12)
+mcCorner.Parent = musicCard
+
+local mcStroke = Instance.new("UIStroke")
+mcStroke.Thickness = 1.2
+mcStroke.Color = Color3.fromRGB(0, 140, 255)
+mcStroke.Transparency = 0.5
+mcStroke.Parent = musicCard
+
+local musicIconBox = Instance.new("Frame")
+musicIconBox.Position = UDim2.fromOffset(8, 7)
+musicIconBox.Size = UDim2.fromOffset(40, 40)
+musicIconBox.BackgroundColor3 = Color3.fromRGB(12, 26, 52)
+musicIconBox.BorderSizePixel = 0
+musicIconBox.Parent = musicCard
+
+local mibCorner = Instance.new("UICorner")
+mibCorner.CornerRadius = UDim.new(0, 10)
+mibCorner.Parent = musicIconBox
+
+local musicIcon = Instance.new("ImageLabel")
+musicIcon.BackgroundTransparency = 1
+musicIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+musicIcon.Position = UDim2.fromScale(0.5, 0.5)
+musicIcon.Size = UDim2.fromOffset(22, 22)
+musicIcon.Image = "rbxassetid://10734952485"
+musicIcon.ImageColor3 = Color3.fromRGB(0, 180, 255)
+musicIcon.Parent = musicIconBox
+
+local musicTitle = Instance.new("TextLabel")
+musicTitle.BackgroundTransparency = 1
+musicTitle.Position = UDim2.fromOffset(56, 9)
+musicTitle.Size = UDim2.new(1, -120, 0, 18)
+musicTitle.Font = Enum.Font.FredokaOne
+musicTitle.Text = "តន្ត្រីផ្ទៃខាងក្រោយ (BGM)"
+musicTitle.TextSize = 12
+musicTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+musicTitle.TextXAlignment = Enum.TextXAlignment.Left
+musicTitle.Parent = musicCard
+
+local musicStatus = Instance.new("TextLabel")
+musicStatus.BackgroundTransparency = 1
+musicStatus.Position = UDim2.fromOffset(56, 28)
+musicStatus.Size = UDim2.new(1, -120, 0, 16)
+musicStatus.Font = Enum.Font.FredokaOne
+musicStatus.Text = "ស្ថានភាព៖ បើក"
+musicStatus.TextSize = 10
+musicStatus.TextColor3 = Color3.fromRGB(80, 255, 140)
+musicStatus.TextXAlignment = Enum.TextXAlignment.Left
+musicStatus.Parent = musicCard
+
+local musicToggle = Instance.new("TextButton")
+musicToggle.Name = "MusicToggle"
+musicToggle.AnchorPoint = Vector2.new(1, 0.5)
+musicToggle.Position = UDim2.new(1, -12, 0.5, 0)
+musicToggle.Size = UDim2.fromOffset(48, 24)
+musicToggle.BackgroundColor3 = Color3.fromRGB(0, 140, 255)
+musicToggle.BorderSizePixel = 0
+musicToggle.Text = ""
+musicToggle.AutoButtonColor = false
+musicToggle.Parent = musicCard
+
+local mtCorner = Instance.new("UICorner")
+mtCorner.CornerRadius = UDim.new(1, 0)
+mtCorner.Parent = musicToggle
+
+local musicThumb = Instance.new("Frame")
+musicThumb.Name = "Thumb"
+musicThumb.AnchorPoint = Vector2.new(0, 0.5)
+musicThumb.Position = UDim2.new(1, -21, 0.5, 0)
+musicThumb.Size = UDim2.fromOffset(18, 18)
+musicThumb.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+musicThumb.BorderSizePixel = 0
+musicThumb.Parent = musicToggle
+
+local mtCorner2 = Instance.new("UICorner")
+mtCorner2.CornerRadius = UDim.new(1, 0)
+mtCorner2.Parent = musicThumb
+
+local isMusicPlaying = true
+local function setMusic(enabled)
+    isMusicPlaying = enabled
+    if isMusicPlaying then
+        pcall(function() MusicSound:Resume() end)
+        musicStatus.Text = "ស្ថានភាព៖ បើក"
+        musicStatus.TextColor3 = Color3.fromRGB(80, 255, 140)
+        tween(musicToggle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(0, 140, 255)})
+        tween(musicThumb, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+            Position = UDim2.new(1, -21, 0.5, 0)
+        })
+    else
+        pcall(function() MusicSound:Pause() end)
+        musicStatus.Text = "ស្ថានភាព៖ បិទ"
+        musicStatus.TextColor3 = Color3.fromRGB(130, 150, 180)
+        tween(musicToggle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(24, 40, 68)})
+        tween(musicThumb, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+            Position = UDim2.new(0, 3, 0.5, 0)
+        })
+    end
+end
+
+musicToggle.Activated:Connect(function()
+    AkiraPlayClick()
+    setMusic(not isMusicPlaying)
+end)
+
+-- ============================================================
+-- DRAGGING MENU SYSTEM (TOPBAR & DRAG DOT)[span_13](start_span)[span_13](end_span)
 -- ============================================================
 local dragDot = Instance.new("ImageButton")
 dragDot.Name = "DragDot"
@@ -563,7 +694,7 @@ UIS.InputEnded:Connect(function(input)
 end)
 
 -- ============================================================
--- FLOATING LOGO BUTTON (DRAGGABLE & CLICKABLE FIX)
+-- FLOATING LOGO BUTTON (DRAGGABLE & CLICKABLE FIX)[span_14](start_span)[span_14](end_span)
 -- ============================================================
 local openButton = Instance.new("ImageButton")
 openButton.Name = "OpenAkiraLogo"
@@ -669,96 +800,10 @@ openButton.InputEnded:Connect(function(input)
         hasMoved = false
     end
 end)
+
 -- ============================================================
--- LIVE MENU ANIMATIONS (EFFECTS រស់រវើក)
+-- RGB RAINBOW & AKIRA SCRIPT LIVE ANIMATION[span_15](start_span)[span_15](end_span)
 -- ============================================================
-
--- ១. ពន្លឺដកដង្ហើមលើស៊ុម Menu (Breathing Stroke Glow)
-task.spawn(function()
-    while gui.Parent and main.Parent do
-        local glowIn = tween(mainStroke, TweenInfo.new(1.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-            Color = Color3.fromRGB(0, 210, 255),
-            Transparency = 0.05
-        })
-        glowIn.Completed:Wait()
-
-        local glowOut = tween(mainStroke, TweenInfo.new(1.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-            Color = Color3.fromRGB(0, 110, 210),
-            Transparency = 0.45
-        })
-        glowOut.Completed:Wait()
-    end
-end)
-
--- ២. ពន្លឺចាំងកាត់អក្សរ AKIRA SCRIPT (Title Shimmer Wave)
-local titleGrad = Instance.new("UIGradient")
-titleGrad.Rotation = 0
-titleGrad.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 255, 255)),
-    ColorSequenceKeypoint.new(0.40, Color3.fromRGB(255, 255, 255)),
-    ColorSequenceKeypoint.new(0.50, Color3.fromRGB(0, 235, 255)),
-    ColorSequenceKeypoint.new(0.60, Color3.fromRGB(255, 255, 255)),
-    ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 255, 255))
-})
-titleGrad.Offset = Vector2.new(-1.2, 0)
-titleGrad.Parent = title
-
-task.spawn(function()
-    while gui.Parent and title.Parent do
-        titleGrad.Offset = Vector2.new(-1.2, 0)
-        local shimmer = tween(titleGrad, TweenInfo.new(2.2, Enum.EasingStyle.Linear), {
-            Offset = Vector2.new(1.2, 0)
-        })
-        shimmer.Completed:Wait()
-        task.wait(1.5) -- ផ្អាកបន្តិចសិនមុននឹងចាំងម្ដងទៀត
-    end
-end)
-
--- ៣. ពន្លឺរលកកាត់លើ Anti-Hit Card (Card Shimmer)
-local cardGrad = Instance.new("UIGradient")
-cardGrad.Rotation = 25
-cardGrad.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0.00, Color3.fromRGB(7, 16, 32)),
-    ColorSequenceKeypoint.new(0.45, Color3.fromRGB(7, 16, 32)),
-    ColorSequenceKeypoint.new(0.50, Color3.fromRGB(15, 45, 90)),
-    ColorSequenceKeypoint.new(0.55, Color3.fromRGB(7, 16, 32)),
-    ColorSequenceKeypoint.new(1.00, Color3.fromRGB(7, 16, 32))
-})
-cardGrad.Offset = Vector2.new(-1.5, 0)
-cardGrad.Parent = antiHitCard
-
-task.spawn(function()
-    while gui.Parent and antiHitCard.Parent do
-        cardGrad.Offset = Vector2.new(-1.5, 0)
-        local sweep = tween(cardGrad, TweenInfo.new(2.6, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {
-            Offset = Vector2.new(1.5, 0)
-        })
-        sweep.Completed:Wait()
-        task.wait(2)
-    end
-end)
-
--- ៤. ចលនាអណ្ដែតលើ Logo Akira ពេល Minimize (Breathe Floating Glow)
-task.spawn(function()
-    while gui.Parent and openButton.Parent do
-        local floatGlow = tween(obStroke, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-            Color = Color3.fromRGB(0, 240, 255),
-            Thickness = 3
-        })
-        floatGlow.Completed:Wait()
-
-        local floatFade = tween(obStroke, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-            Color = Color3.fromRGB(0, 110, 220),
-            Thickness = 2
-        })
-        floatFade.Completed:Wait()
-    end
-end)
--- ============================================================
--- RGB RAINBOW & AKIRA SCRIPT LIVE ANIMATION
--- ============================================================
-
--- ១. ភ្លើង RGB រត់ព័ទ្ធជុំវិញស៊ុម MENU (MAIN MENU RGB BORDER)
 local rgbStrokeGradient = Instance.new("UIGradient")
 rgbStrokeGradient.Name = "RGBStrokeFlow"
 rgbStrokeGradient.Rotation = 0
@@ -773,17 +818,23 @@ rgbStrokeGradient.Color = ColorSequence.new({
 })
 rgbStrokeGradient.Parent = mainStroke
 
--- បង្កើតចលនាបង្វិលភ្លើង RGB រត់ជុំវិញស៊ុម Menu
+local logoRGB = rgbStrokeGradient:Clone()
+logoRGB.Parent = logoCardStroke
+
+local dotRGB = rgbStrokeGradient:Clone()
+dotRGB.Parent = dotStroke
+
 task.spawn(function()
     local rot = 0
-    while gui.Parent and main.Parent and mainStroke.Parent do
+    while gui.Parent and main.Parent do
         rot = (rot + 3) % 360
         rgbStrokeGradient.Rotation = rot
-        task.wait(0.03) -- កម្រិតល្បឿនរត់នៃពន្លឺ RGB
+        if logoRGB.Parent then logoRGB.Rotation = rot end
+        if dotRGB.Parent then dotRGB.Rotation = rot end
+        task.wait(0.03)
     end
 end)
 
--- ២. LIVE ANIMATION លើអក្សរ "AKIRA SCRIPT" (RGB SHIMMER + BREATHING)
 local akiraGradient = Instance.new("UIGradient")
 akiraGradient.Name = "AkiraTextRGB"
 akiraGradient.Rotation = 0
@@ -797,7 +848,6 @@ akiraGradient.Color = ColorSequence.new({
 akiraGradient.Offset = Vector2.new(-1.2, 0)
 akiraGradient.Parent = title
 
--- ចលនាពន្លឺចាំងកាត់អក្សរ AKIRA SCRIPT បន្តបន្ទាប់
 task.spawn(function()
     while gui.Parent and title.Parent do
         akiraGradient.Offset = Vector2.new(-1.2, 0)
@@ -809,7 +859,6 @@ task.spawn(function()
     end
 end)
 
--- ចលនាអក្សរ AKIRA SCRIPT ឡើងចុះតិចៗ (Live Float Effect)
 task.spawn(function()
     local basePos = title.Position
     while gui.Parent and title.Parent do
@@ -822,22 +871,5 @@ task.spawn(function()
             Position = UDim2.new(basePos.X.Scale, basePos.X.Offset, basePos.Y.Scale, basePos.Y.Offset + 1)
         })
         down.Completed:Wait()
-    end
-end)
-
--- ៣. ភ្លើង RGB រត់តាម Logo Card និង Drag Dot ផងដែរ
-local logoRGB = rgbStrokeGradient:Clone()
-logoRGB.Parent = logoCardStroke
-
-local dotRGB = rgbStrokeGradient:Clone()
-dotRGB.Parent = dotStroke
-
-task.spawn(function()
-    local dotRot = 0
-    while gui.Parent and logoCardStroke.Parent do
-        dotRot = (dotRot + 4) % 360
-        logoRGB.Rotation = dotRot
-        if dotRGB.Parent then dotRGB.Rotation = dotRot end
-        task.wait(0.03)
     end
 end)
