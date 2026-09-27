@@ -1136,6 +1136,143 @@ RunService.Stepped:Connect(function()
         end
     end
 end)
+-- ============================================================
+-- GOD MODE / INVINCIBLE (វាយមិនត្រូវ)
+-- ============================================================
+local GodModeEnabled = false
+local godLoopConnection = nil
+
+local godCard = Instance.new("Frame")
+godCard.Name = "GodCard"
+godCard.Size = UDim2.new(1, -10, 0, 60)
+godCard.BackgroundColor3 = Color3.fromRGB(7, 16, 32)
+godCard.BorderSizePixel = 0
+godCard.Parent = scriptsPage
+
+local gcCorner = Instance.new("UICorner")
+gcCorner.CornerRadius = UDim.new(0, 12)
+gcCorner.Parent = godCard
+
+local gcStroke = Instance.new("UIStroke")
+gcStroke.Thickness = 1.2
+gcStroke.Color = Color3.fromRGB(0, 140, 255)
+gcStroke.Transparency = 0.5
+gcStroke.Parent = godCard
+
+local gcIconBox = Instance.new("Frame")
+gcIconBox.Position = UDim2.fromOffset(8, 8)
+gcIconBox.Size = UDim2.fromOffset(44, 44)
+gcIconBox.BackgroundColor3 = Color3.fromRGB(12, 26, 52)
+gcIconBox.BorderSizePixel = 0
+gcIconBox.Parent = godCard
+
+local gciCorner = Instance.new("UICorner")
+gciCorner.CornerRadius = UDim.new(0, 10)
+gciCorner.Parent = gcIconBox
+
+local gcIcon = Instance.new("ImageLabel")
+gcIcon.BackgroundTransparency = 1
+gcIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+gcIcon.Position = UDim2.fromScale(0.5, 0.5)
+gcIcon.Size = UDim2.fromOffset(24, 24)
+gcIcon.Image = "rbxassetid://10734950309"
+gcIcon.ImageColor3 = Color3.fromRGB(0, 160, 255)
+gcIcon.Parent = gcIconBox
+
+local gcTitle = Instance.new("TextLabel")
+gcTitle.BackgroundTransparency = 1
+gcTitle.Position = UDim2.fromOffset(62, 11)
+gcTitle.Size = UDim2.new(1, -140, 0, 20)
+gcTitle.Font = Enum.Font.FredokaOne
+gcTitle.RichText = true
+gcTitle.Text = 'វាយមិនត្រូវ <font color="rgb(0, 210, 255)">(GOD MODE)</font>'
+gcTitle.TextSize = 13
+gcTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+gcTitle.TextXAlignment = Enum.TextXAlignment.Left
+gcTitle.Parent = godCard
+
+local gcStatus = Instance.new("TextLabel")
+gcStatus.BackgroundTransparency = 1
+gcStatus.Position = UDim2.fromOffset(62, 31)
+gcStatus.Size = UDim2.new(1, -140, 0, 16)
+gcStatus.Font = Enum.Font.FredokaOne
+gcStatus.Text = "ស្ថានភាព៖ បិទ"
+gcStatus.TextSize = 10
+gcStatus.TextColor3 = Color3.fromRGB(130, 150, 180)
+gcStatus.TextXAlignment = Enum.TextXAlignment.Left
+gcStatus.Parent = godCard
+
+local gcToggle = Instance.new("TextButton")
+gcToggle.AnchorPoint = Vector2.new(1, 0.5)
+gcToggle.Position = UDim2.new(1, -14, 0.5, 0)
+gcToggle.Size = UDim2.fromOffset(48, 24)
+gcToggle.BackgroundColor3 = Color3.fromRGB(24, 40, 68)
+gcToggle.BorderSizePixel = 0
+gcToggle.Text = ""
+gcToggle.AutoButtonColor = false
+gcToggle.Parent = godCard
+
+local gctCorner = Instance.new("UICorner")
+gctCorner.CornerRadius = UDim.new(1, 0)
+gctCorner.Parent = gcToggle
+
+local gcThumb = Instance.new("Frame")
+gcThumb.AnchorPoint = Vector2.new(0, 0.5)
+gcThumb.Position = UDim2.new(0, 3, 0.5, 0)
+gcThumb.Size = UDim2.fromOffset(18, 18)
+gcThumb.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+gcThumb.BorderSizePixel = 0
+gcThumb.Parent = gcToggle
+
+local gctbCorner = Instance.new("UICorner")
+gctbCorner.CornerRadius = UDim.new(1, 0)
+gctbCorner.Parent = gcThumb
+
+-- អនុគមន៍ដក Touch Hitbox ចេញពីខ្លួន
+local function setGodMode(state)
+    local char = Player.Character
+    if char then
+        for _, part in ipairs(char:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanTouch = not state
+            end
+        end
+    end
+end
+
+gcToggle.Activated:Connect(function()
+    AkiraPlayClick()
+    GodModeEnabled = not GodModeEnabled
+
+    if GodModeEnabled then
+        gcStatus.Text = "ស្ថានភាព៖ បើកដំណើរការ"
+        gcStatus.TextColor3 = Color3.fromRGB(80, 255, 140)
+        tween(gcToggle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(0, 140, 255)})
+        tween(gcThumb, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+            Position = UDim2.new(1, -21, 0.5, 0)
+        })
+
+        -- រក្សាស្ថានភាពវាយមិនត្រូវជាប់រហូត
+        godLoopConnection = RunService.Stepped:Connect(function()
+            if GodModeEnabled then
+                setGodMode(true)
+            end
+        end)
+    else
+        gcStatus.Text = "ស្ថានភាព៖ បិទ"
+        gcStatus.TextColor3 = Color3.fromRGB(130, 150, 180)
+        tween(gcToggle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(24, 40, 68)})
+        tween(gcThumb, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+            Position = UDim2.new(0, 3, 0.5, 0)
+        })
+
+        if godLoopConnection then
+            godLoopConnection:Disconnect()
+            godLoopConnection = nil
+        end
+        setGodMode(false)
+    end
+end)
 
 -- ============================================================
 -- DRAGGING MENU SYSTEM
