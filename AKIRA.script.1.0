@@ -1251,7 +1251,7 @@ RunService.Stepped:Connect(function()
     end
 end)
 -- ============================================================
--- AUTO RUN TO SAFE ZONE (HAND-HELD EGG DETECTION ONLY)
+-- AUTO RUN TO SAFE ZONE (STEALING EGG / TWO-HANDS HOLDING ONLY)
 -- ============================================================
 local AutoSafeZoneEnabled = false
 local IsRunningToSafeZone = false
@@ -1299,7 +1299,7 @@ szcTitle.Position = UDim2.fromOffset(62, 11)
 szcTitle.Size = UDim2.new(1, -140, 0, 20)
 szcTitle.Font = Enum.Font.FredokaOne
 szcTitle.RichText = true
-szcTitle.Text = 'រត់ពេលកាន់ Egg <font color="rgb(0, 210, 255)">(SAFE ESCAPE)</font>'
+szcTitle.Text = 'រត់ពេលកំពុងលួច Egg <font color="rgb(0, 210, 255)">(SAFE ZONE)</font>'
 szcTitle.TextSize = 13
 szcTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
 szcTitle.TextXAlignment = Enum.TextXAlignment.Left
@@ -1347,7 +1347,7 @@ szcToggle.Activated:Connect(function()
     AutoSafeZoneEnabled = not AutoSafeZoneEnabled
 
     if AutoSafeZoneEnabled then
-        szcStatus.Text = "ស្ថានភាព៖ រង់ចាំកាន់ Egg"
+        szcStatus.Text = "ស្ថានភាព៖ រង់ចាំលួច Egg"
         szcStatus.TextColor3 = Color3.fromRGB(80, 255, 140)
         tween(szcToggle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(0, 140, 255)})
         tween(szcThumb, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
@@ -1364,16 +1364,42 @@ szcToggle.Activated:Connect(function()
     end
 end)
 
--- អនុគមន៍ឆែកតែរបស់ដែលកំពុងកាន់នៅក្នុងដៃ (ក្នុង Character តែប៉ុណ្ណោះ មិនឆែក Backpack ទេ)
-local function isHoldingEggInHand(character)
+-- អនុគមន៍ពិនិត្យមើលថាតើតួអង្គកំពុងលួច/ឱប Egg ដៃពីរ ឬអត់
+local function isStealingEgg(character)
     if not character then return false end
 
-    for _, item in ipairs(character:GetChildren()) do
-        -- ឆែក Tool ឬ Model ដែលជា Egg កំពុងកាន់ជាប់ដៃ
-        if item:IsA("Tool") or item:IsA("Model") then
-            local n = string.lower(item.Name)
-            if string.find(n, "egg") or string.find(n, "ពង") then
+    -- ១. ពិនិត្យមើល Part ឬ Model របស់ Egg ធំដែលភ្ជាប់ (Weld) ជាប់នឹងខ្លួនតួអង្គ
+    for _, part in ipairs(character:GetDescendants()) do
+        if part:IsA("Weld") or part:IsA("WeldConstraint") or part:IsA("Motor6D") then
+            local p0 = part.Part0 and string.lower(part.Part0.Name) or ""
+            local p1 = part.Part1 and string.lower(part.Part1.Name) or ""
+            local wName = string.lower(part.Name)
+            if string.find(p0, "egg") or string.find(p1, "egg") or string.find(wName, "egg") or string.find(wName, "carry") then
                 return true
+            end
+        end
+    end
+
+    -- ២. ពិនិត្យមើល Model/Part ដែលមានឈ្មោះ Egg ផ្ទាល់នៅក្នុង Character (ដែលមិនមែនជា Tool កាន់ដៃម្ខាង)
+    for _, obj in ipairs(character:GetChildren()) do
+        local n = string.lower(obj.Name)
+        if (obj:IsA("Model") or obj:IsA("BasePart")) and (string.find(n, "egg") or string.find(n, "carry") or string.find(n, "steal")) then
+            return true
+        end
+    end
+
+    -- ៣. ពិនិត្យមើល Animation លើកដៃពីរ (Carrying Animation)
+    local hum = character:FindFirstChildOfClass("Humanoid")
+    if hum then
+        local animator = hum:FindFirstChildOfClass("Animator")
+        if animator then
+            for _, track in ipairs(animator:GetPlayingAnimationTracks()) do
+                local animName = string.lower(track.Name)
+                local animId = tostring(track.Animation and track.Animation.AnimationId or "")
+                -- ឆែកមើល track animation ដែលជាប្រភេទ carry / hold egg ដៃពីរ
+                if string.find(animName, "carry") or string.find(animName, "hold") or string.find(animName, "egg") then
+                    return true
+                end
             end
         end
     end
@@ -1430,17 +1456,17 @@ local function RunToSafety(character)
     if not humanoid or not root or IsRunningToSafeZone then return end
 
     IsRunningToSafeZone = true
-    szcStatus.Text = "ស្ថានភាព៖ កំពុងកាន់ Egg រត់ទៅ Safe Zone..."
+    szcStatus.Text = "ស្ថានភាព៖ កំពុងលួច Egg រត់ទៅ Safe Zone..."
     szcStatus.TextColor3 = Color3.fromRGB(0, 210, 255)
 
     local targetSafeZone = getNearestSafeZone(root.Position)
 
     task.spawn(function()
         while AutoSafeZoneEnabled and IsRunningToSafeZone and character.Parent do
-            -- បើធ្លាក់ Egg ចេញពីដៃ (លែងឃើញក្នុង Character) ឈប់រត់ភ្លាម!
-            if not isHoldingEggInHand(character) then
+            -- ប្រសិនបើធ្លាក់ Egg / របូតចេញពីដៃទាំងពីរ ឈប់រត់ភ្លាមៗ!
+            if not isStealingEgg(character) then
                 humanoid.WalkSpeed = 16
-                humanoid:MoveTo(root.Position) -- បញ្ឈប់ការដើរ
+                humanoid:MoveTo(root.Position) -- បញ្ឈប់ការដើរទៅមុខ
                 szcStatus.Text = "ស្ថានភាព៖ Egg របូតពីដៃ (ឈប់រត់)"
                 szcStatus.TextColor3 = Color3.fromRGB(255, 120, 120)
                 break
@@ -1448,17 +1474,16 @@ local function RunToSafety(character)
 
             local distToSafe = (root.Position - targetSafeZone).Magnitude
             if distToSafe <= 10 then
-                -- ដល់ Safe Zone
                 szcStatus.Text = "ស្ថានភាព៖ ដល់ Safe Zone ហើយ!"
                 szcStatus.TextColor3 = Color3.fromRGB(80, 255, 140)
                 break
             end
 
-            -- គណនាល្បឿនគេចមេ
+            -- គណនាល្បឿនគេចមេ (លឿនជាងមេ 3 studs/s)
             local monster, mDist = getNearestChaser(root)
             local targetSpeed = 22
 
-            if monster and mDist < 35 then
+            if monster and mDist < 40 then
                 local mHum = monster:FindFirstChildOfClass("Humanoid")
                 local mSpeed = mHum and mHum.WalkSpeed or 20
                 targetSpeed = math.clamp(mSpeed + 3, 23, 36)
@@ -1474,51 +1499,20 @@ local function RunToSafety(character)
         IsRunningToSafeZone = false
         task.wait(2)
         if AutoSafeZoneEnabled then
-            szcStatus.Text = "ស្ថានភាព៖ រង់ចាំកាន់ Egg"
+            szcStatus.Text = "ស្ថានភាព៖ រង់ចាំលួច Egg"
             szcStatus.TextColor3 = Color3.fromRGB(80, 255, 140)
         end
     end)
 end
 
--- តាមដានផ្ទាល់លើដៃរបស់តួអង្គ (Character ChildAdded / ChildRemoved)
-local function bindCharacterHolding(char)
-    if not char then return end
-
-    -- ពេលមានរបស់ថ្មីចូលមកក្នុងដៃ
-    char.ChildAdded:Connect(function(child)
-        if AutoSafeZoneEnabled and not IsRunningToSafeZone then
-            local n = string.lower(child.Name)
-            if string.find(n, "egg") or string.find(n, "ពង") then
-                task.wait(0.1)
-                RunToSafety(char)
-            end
+-- តាមដានវត្តមាន Egg ដៃពីរជាប្រចាំ
+RunService.Heartbeat:Connect(function()
+    if AutoSafeZoneEnabled and not IsRunningToSafeZone then
+        local char = Player.Character
+        if char and isStealingEgg(char) then
+            RunToSafety(char)
         end
-    end)
-
-    -- ពេលរបស់ធ្លាក់ ឬបាត់ពីដៃ
-    char.ChildRemoved:Connect(function(child)
-        local n = string.lower(child.Name)
-        if string.find(n, "egg") or string.find(n, "ពង") then
-            if not isHoldingEggInHand(char) then
-                local hum = char:FindFirstChildOfClass("Humanoid")
-                local root = char:FindFirstChild("HumanoidRootPart")
-                if hum and root then
-                    hum.WalkSpeed = 16
-                    hum:MoveTo(root.Position)
-                end
-                IsRunningToSafeZone = false
-            end
-        end
-    end)
-end
-
--- ភ្ជាប់ជាមួយ Character បច្ចុប្បន្ន និងពេល Respawn
-if Player.Character then
-    bindCharacterHolding(Player.Character)
-end
-
-Player.CharacterAdded:Connect(function(newChar)
-    bindCharacterHolding(newChar)
+    end
 end)
 
 -- ============================================================
