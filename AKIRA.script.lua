@@ -754,3 +754,90 @@ task.spawn(function()
         floatFade.Completed:Wait()
     end
 end)
+-- ============================================================
+-- RGB RAINBOW & AKIRA SCRIPT LIVE ANIMATION
+-- ============================================================
+
+-- ១. ភ្លើង RGB រត់ព័ទ្ធជុំវិញស៊ុម MENU (MAIN MENU RGB BORDER)
+local rgbStrokeGradient = Instance.new("UIGradient")
+rgbStrokeGradient.Name = "RGBStrokeFlow"
+rgbStrokeGradient.Rotation = 0
+rgbStrokeGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0.00, Color3.fromRGB(255, 0, 0)),
+    ColorSequenceKeypoint.new(0.17, Color3.fromRGB(255, 127, 0)),
+    ColorSequenceKeypoint.new(0.33, Color3.fromRGB(255, 255, 0)),
+    ColorSequenceKeypoint.new(0.50, Color3.fromRGB(0, 255, 0)),
+    ColorSequenceKeypoint.new(0.67, Color3.fromRGB(0, 180, 255)),
+    ColorSequenceKeypoint.new(0.83, Color3.fromRGB(150, 0, 255)),
+    ColorSequenceKeypoint.new(1.00, Color3.fromRGB(255, 0, 0))
+})
+rgbStrokeGradient.Parent = mainStroke
+
+-- បង្កើតចលនាបង្វិលភ្លើង RGB រត់ជុំវិញស៊ុម Menu
+task.spawn(function()
+    local rot = 0
+    while gui.Parent and main.Parent and mainStroke.Parent do
+        rot = (rot + 3) % 360
+        rgbStrokeGradient.Rotation = rot
+        task.wait(0.03) -- កម្រិតល្បឿនរត់នៃពន្លឺ RGB
+    end
+end)
+
+-- ២. LIVE ANIMATION លើអក្សរ "AKIRA SCRIPT" (RGB SHIMMER + BREATHING)
+local akiraGradient = Instance.new("UIGradient")
+akiraGradient.Name = "AkiraTextRGB"
+akiraGradient.Rotation = 0
+akiraGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0.00, Color3.fromRGB(0, 200, 255)),
+    ColorSequenceKeypoint.new(0.25, Color3.fromRGB(255, 255, 255)),
+    ColorSequenceKeypoint.new(0.50, Color3.fromRGB(255, 0, 128)),
+    ColorSequenceKeypoint.new(0.75, Color3.fromRGB(255, 255, 255)),
+    ColorSequenceKeypoint.new(1.00, Color3.fromRGB(0, 200, 255))
+})
+akiraGradient.Offset = Vector2.new(-1.2, 0)
+akiraGradient.Parent = title
+
+-- ចលនាពន្លឺចាំងកាត់អក្សរ AKIRA SCRIPT បន្តបន្ទាប់
+task.spawn(function()
+    while gui.Parent and title.Parent do
+        akiraGradient.Offset = Vector2.new(-1.2, 0)
+        local t = tween(akiraGradient, TweenInfo.new(1.8, Enum.EasingStyle.Linear), {
+            Offset = Vector2.new(1.2, 0)
+        })
+        t.Completed:Wait()
+        task.wait(0.8)
+    end
+end)
+
+-- ចលនាអក្សរ AKIRA SCRIPT ឡើងចុះតិចៗ (Live Float Effect)
+task.spawn(function()
+    local basePos = title.Position
+    while gui.Parent and title.Parent do
+        local up = tween(title, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+            Position = UDim2.new(basePos.X.Scale, basePos.X.Offset, basePos.Y.Scale, basePos.Y.Offset - 2)
+        })
+        up.Completed:Wait()
+
+        local down = tween(title, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+            Position = UDim2.new(basePos.X.Scale, basePos.X.Offset, basePos.Y.Scale, basePos.Y.Offset + 1)
+        })
+        down.Completed:Wait()
+    end
+end)
+
+-- ៣. ភ្លើង RGB រត់តាម Logo Card និង Drag Dot ផងដែរ
+local logoRGB = rgbStrokeGradient:Clone()
+logoRGB.Parent = logoCardStroke
+
+local dotRGB = rgbStrokeGradient:Clone()
+dotRGB.Parent = dotStroke
+
+task.spawn(function()
+    local dotRot = 0
+    while gui.Parent and logoCardStroke.Parent do
+        dotRot = (dotRot + 4) % 360
+        logoRGB.Rotation = dotRot
+        if dotRGB.Parent then dotRGB.Rotation = dotRot end
+        task.wait(0.03)
+    end
+end)
