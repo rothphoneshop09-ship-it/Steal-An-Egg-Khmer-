@@ -908,16 +908,14 @@ ProximityPromptService.PromptTriggered:Connect(function(prompt, p)
             TeleportRoute(char)
         end)
     end
-end)
+end)-- ============================================================
+-- 1. SPEED HACK BYPASS (CFRAME VECTOR SYSTEM)
 -- ============================================================
--- SPEED HACK (SMOOTH SLIDER + DIRECT NUMBER INPUT)
--- ============================================================
-local NormalSpeed = 16
 local CurrentSpeed = 16
 local SpeedEnabled = false
 local minSpeed = 16
 local maxSpeed = 500
-local speedStep = 5 -- លោតម្ដង 5 លេខ ងាយស្រួលអូសចំ 250, 300
+local speedStep = 5
 
 local speedCard = Instance.new("Frame")
 speedCard.Name = "SpeedCard"
@@ -962,13 +960,12 @@ spTitle.Position = UDim2.fromOffset(56, 9)
 spTitle.Size = UDim2.new(1, -130, 0, 18)
 spTitle.Font = Enum.Font.FredokaOne
 spTitle.RichText = true
-spTitle.Text = 'ល្បឿនរត់ <font color="rgb(0, 210, 255)">(SPEED HACK)</font>'
+spTitle.Text = 'ល្បឿនរត់ <font color="rgb(0, 210, 255)">(SPEED BYPASS)</font>'
 spTitle.TextSize = 13
 spTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
 spTitle.TextXAlignment = Enum.TextXAlignment.Left
 spTitle.Parent = speedCard
 
--- ប្រអប់វាយលេខផ្ទាល់ (អាចចុចវាយលេខ 250 ឬ 300 ភ្លាមៗ)
 local spValBox = Instance.new("TextBox")
 spValBox.Name = "SpeedInputBox"
 spValBox.BackgroundTransparency = 1
@@ -982,7 +979,6 @@ spValBox.TextXAlignment = Enum.TextXAlignment.Left
 spValBox.ClearTextOnFocus = false
 spValBox.Parent = speedCard
 
--- Toggle Switch បើក/បិទ Speed
 local spToggleTrack = Instance.new("TextButton")
 spToggleTrack.AnchorPoint = Vector2.new(1, 0)
 spToggleTrack.Position = UDim2.new(1, -14, 0, 10)
@@ -1009,7 +1005,6 @@ local spthCorner = Instance.new("UICorner")
 spthCorner.CornerRadius = UDim.new(1, 0)
 spthCorner.Parent = spThumb
 
--- Slider Bar
 local sliderBar = Instance.new("Frame")
 sliderBar.Name = "SliderBar"
 sliderBar.Position = UDim2.fromOffset(12, 53)
@@ -1039,29 +1034,14 @@ sliderButton.Size = UDim2.fromScale(1, 1)
 sliderButton.Text = ""
 sliderButton.Parent = sliderBar
 
-local function updatePlayerSpeed()
-    local char = Player.Character
-    if char then
-        local hum = char:FindFirstChildOfClass("Humanoid")
-        if hum then
-            hum.WalkSpeed = SpeedEnabled and CurrentSpeed or NormalSpeed
-        end
-    end
-end
-
--- ប្ដូរ UI តាមតម្លៃលេខ
 local function applySpeedValue(val)
     local clamped = math.clamp(val, minSpeed, maxSpeed)
     CurrentSpeed = clamped
     local percent = (CurrentSpeed - minSpeed) / (maxSpeed - minSpeed)
     sliderFill.Size = UDim2.new(percent, 0, 1, 0)
     spValBox.Text = "ល្បឿនបច្ចុប្បន្ន៖ " .. tostring(CurrentSpeed)
-    if SpeedEnabled then
-        updatePlayerSpeed()
-    end
 end
 
--- Toggle Switch Logic
 spToggleTrack.Activated:Connect(function()
     AkiraPlayClick()
     SpeedEnabled = not SpeedEnabled
@@ -1079,10 +1059,8 @@ spToggleTrack.Activated:Connect(function()
             Position = UDim2.new(0, 3, 0.5, 0)
         })
     end
-    updatePlayerSpeed()
 end)
 
--- ករណីអ្នកលេងចុចវាយលេខផ្ទាល់ (ឧ. វាយ 250 ឬ 300)
 spValBox.FocusLost:Connect(function()
     local num = tonumber(spValBox.Text:match("%d+"))
     if num then
@@ -1092,14 +1070,11 @@ spValBox.FocusLost:Connect(function()
     end
 end)
 
--- Slider Dragging System (គាំទ្រការ Snap លេខមូលៗ ដូចជា 250, 300)
 local isSliderDragging = false
-
 local function updateSlider(inputPos)
     local barAbsPos = sliderBar.AbsolutePosition.X
     local barAbsSize = sliderBar.AbsoluteSize.X
     local percent = math.clamp((inputPos.X - barAbsPos) / barAbsSize, 0, 1)
-    
     local rawSpeed = minSpeed + (maxSpeed - minSpeed) * percent
     local steppedSpeed = math.floor((rawSpeed / speedStep) + 0.5) * speedStep
     applySpeedValue(steppedSpeed)
@@ -1124,23 +1099,29 @@ UIS.InputEnded:Connect(function(input)
     end
 end)
 
--- រក្សាល្បឿនជាប់រហូត
-RunService.Stepped:Connect(function()
+-- យន្តការ Speed Bypass ដោយប្រើ Heartbeat & MoveDirection (មិនងាយជាប់ Anti-Cheat)
+RunService.Heartbeat:Connect(function(dt)
     if SpeedEnabled then
         local char = Player.Character
         if char then
             local hum = char:FindFirstChildOfClass("Humanoid")
-            if hum and hum.WalkSpeed ~= CurrentSpeed then
-                hum.WalkSpeed = CurrentSpeed
+            local root = char:FindFirstChild("HumanoidRootPart")
+            if hum and root and hum.MoveDirection.Magnitude > 0 then
+                local moveDir = hum.MoveDirection.Unit
+                local boostFactor = (CurrentSpeed - 16)
+                if boostFactor > 0 then
+                    root.CFrame = root.CFrame + (moveDir * (boostFactor * dt))
+                end
             end
         end
     end
 end)
+
+
 -- ============================================================
--- GOD MODE / INVINCIBLE (វាយមិនត្រូវ)
+-- 2. GOD MODE FIX (HITBOX DESYNC / SEMI-GOD)
 -- ============================================================
 local GodModeEnabled = false
-local godLoopConnection = nil
 
 local godCard = Instance.new("Frame")
 godCard.Name = "GodCard"
@@ -1185,7 +1166,7 @@ gcTitle.Position = UDim2.fromOffset(62, 11)
 gcTitle.Size = UDim2.new(1, -140, 0, 20)
 gcTitle.Font = Enum.Font.FredokaOne
 gcTitle.RichText = true
-gcTitle.Text = 'វាយមិនត្រូវ <font color="rgb(0, 210, 255)">(GOD MODE)</font>'
+gcTitle.Text = 'វាយមិនត្រូវ <font color="rgb(0, 210, 255)">(GOD DESYNC)</font>'
 gcTitle.TextSize = 13
 gcTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
 gcTitle.TextXAlignment = Enum.TextXAlignment.Left
@@ -1228,18 +1209,6 @@ local gctbCorner = Instance.new("UICorner")
 gctbCorner.CornerRadius = UDim.new(1, 0)
 gctbCorner.Parent = gcThumb
 
--- អនុគមន៍ដក Touch Hitbox ចេញពីខ្លួន
-local function setGodMode(state)
-    local char = Player.Character
-    if char then
-        for _, part in ipairs(char:GetDescendants()) do
-            if part:IsA("BasePart") then
-                part.CanTouch = not state
-            end
-        end
-    end
-end
-
 gcToggle.Activated:Connect(function()
     AkiraPlayClick()
     GodModeEnabled = not GodModeEnabled
@@ -1251,13 +1220,6 @@ gcToggle.Activated:Connect(function()
         tween(gcThumb, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
             Position = UDim2.new(1, -21, 0.5, 0)
         })
-
-        -- រក្សាស្ថានភាពវាយមិនត្រូវជាប់រហូត
-        godLoopConnection = RunService.Stepped:Connect(function()
-            if GodModeEnabled then
-                setGodMode(true)
-            end
-        end)
     else
         gcStatus.Text = "ស្ថានភាព៖ បិទ"
         gcStatus.TextColor3 = Color3.fromRGB(130, 150, 180)
@@ -1265,12 +1227,27 @@ gcToggle.Activated:Connect(function()
         tween(gcThumb, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
             Position = UDim2.new(0, 3, 0.5, 0)
         })
+    end
+end)
 
-        if godLoopConnection then
-            godLoopConnection:Disconnect()
-            godLoopConnection = nil
+-- យន្តការ God Mode តាមរយៈ Hitbox Fake Offset & State Bypass
+RunService.Stepped:Connect(function()
+    if GodModeEnabled then
+        local char = Player.Character
+        if char then
+            local hum = char:FindFirstChildOfClass("Humanoid")
+            if hum then
+                -- ការពារការដកឈាមពី Ragdoll និង Touch
+                hum:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
+                hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+                hum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+            end
+            for _, part in ipairs(char:GetChildren()) do
+                if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                    part.CanTouch = false
+                end
+            end
         end
-        setGodMode(false)
     end
 end)
 
