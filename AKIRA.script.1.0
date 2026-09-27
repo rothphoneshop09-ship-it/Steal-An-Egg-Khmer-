@@ -908,8 +908,10 @@ ProximityPromptService.PromptTriggered:Connect(function(prompt, p)
             TeleportRoute(char)
         end)
     end
-end)-- ============================================================
--- 1. SPEED HACK BYPASS (CFRAME VECTOR SYSTEM)
+end)
+
+-- ============================================================
+-- 1. SPEED HACK (ASSEMBLY VELOCITY FIX - មិនរត់ទៅមុខថយក្រោយ)
 -- ============================================================
 local CurrentSpeed = 16
 local SpeedEnabled = false
@@ -945,13 +947,14 @@ local spiCorner = Instance.new("UICorner")
 spiCorner.CornerRadius = UDim.new(0, 10)
 spiCorner.Parent = spIconBox
 
+-- Icon រត់លឿន (Running / Speed Icon)
 local spIcon = Instance.new("ImageLabel")
 spIcon.BackgroundTransparency = 1
 spIcon.AnchorPoint = Vector2.new(0.5, 0.5)
 spIcon.Position = UDim2.fromScale(0.5, 0.5)
-spIcon.Size = UDim2.fromOffset(22, 22)
-spIcon.Image = "rbxassetid://10734950309"
-spIcon.ImageColor3 = Color3.fromRGB(0, 160, 255)
+spIcon.Size = UDim2.fromOffset(24, 24)
+spIcon.Image = "rbxassetid://10734975692"
+spIcon.ImageColor3 = Color3.fromRGB(0, 190, 255)
 spIcon.Parent = spIconBox
 
 local spTitle = Instance.new("TextLabel")
@@ -960,7 +963,7 @@ spTitle.Position = UDim2.fromOffset(56, 9)
 spTitle.Size = UDim2.new(1, -130, 0, 18)
 spTitle.Font = Enum.Font.FredokaOne
 spTitle.RichText = true
-spTitle.Text = 'ល្បឿនរត់ <font color="rgb(0, 210, 255)">(SPEED BYPASS)</font>'
+spTitle.Text = 'ល្បឿនរត់ <font color="rgb(0, 210, 255)">(SMOOTH SPEED)</font>'
 spTitle.TextSize = 13
 spTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
 spTitle.TextXAlignment = Enum.TextXAlignment.Left
@@ -1099,27 +1102,25 @@ UIS.InputEnded:Connect(function(input)
     end
 end)
 
--- យន្តការ Speed Bypass ដោយប្រើ Heartbeat & MoveDirection (មិនងាយជាប់ Anti-Cheat)
-RunService.Heartbeat:Connect(function(dt)
+-- ដំណោះស្រាយ Assembly Linear Velocity (រត់លឿនរលូនខ្លាំង មិនរត់ថយក្រោយឡើយ)
+RunService.Heartbeat:Connect(function()
     if SpeedEnabled then
         local char = Player.Character
         if char then
             local hum = char:FindFirstChildOfClass("Humanoid")
             local root = char:FindFirstChild("HumanoidRootPart")
-            if hum and root and hum.MoveDirection.Magnitude > 0 then
-                local moveDir = hum.MoveDirection.Unit
-                local boostFactor = (CurrentSpeed - 16)
-                if boostFactor > 0 then
-                    root.CFrame = root.CFrame + (moveDir * (boostFactor * dt))
+            if hum and root then
+                if hum.MoveDirection.Magnitude > 0 then
+                    local targetVelocity = hum.MoveDirection.Unit * CurrentSpeed
+                    root.AssemblyLinearVelocity = Vector3.new(targetVelocity.X, root.AssemblyLinearVelocity.Y, targetVelocity.Z)
                 end
             end
         end
     end
 end)
 
-
 -- ============================================================
--- 2. GOD MODE FIX (HITBOX DESYNC / SEMI-GOD)
+-- 2. GOD MODE (HEART SHIELD ICON & BODY NO-COLLIDE)
 -- ============================================================
 local GodModeEnabled = false
 
@@ -1151,13 +1152,14 @@ local gciCorner = Instance.new("UICorner")
 gciCorner.CornerRadius = UDim.new(0, 10)
 gciCorner.Parent = gcIconBox
 
+-- Icon ខែលការពារ / អមតៈ (Shield / Invincible)
 local gcIcon = Instance.new("ImageLabel")
 gcIcon.BackgroundTransparency = 1
 gcIcon.AnchorPoint = Vector2.new(0.5, 0.5)
 gcIcon.Position = UDim2.fromScale(0.5, 0.5)
 gcIcon.Size = UDim2.fromOffset(24, 24)
-gcIcon.Image = "rbxassetid://10734950309"
-gcIcon.ImageColor3 = Color3.fromRGB(0, 160, 255)
+gcIcon.Image = "rbxassetid://10709790644"
+gcIcon.ImageColor3 = Color3.fromRGB(0, 210, 255)
 gcIcon.Parent = gcIconBox
 
 local gcTitle = Instance.new("TextLabel")
@@ -1166,7 +1168,7 @@ gcTitle.Position = UDim2.fromOffset(62, 11)
 gcTitle.Size = UDim2.new(1, -140, 0, 20)
 gcTitle.Font = Enum.Font.FredokaOne
 gcTitle.RichText = true
-gcTitle.Text = 'វាយមិនត្រូវ <font color="rgb(0, 210, 255)">(GOD DESYNC)</font>'
+gcTitle.Text = 'វាយមិនត្រូវ <font color="rgb(0, 210, 255)">(GOD MODE)</font>'
 gcTitle.TextSize = 13
 gcTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
 gcTitle.TextXAlignment = Enum.TextXAlignment.Left
@@ -1230,21 +1232,19 @@ gcToggle.Activated:Connect(function()
     end
 end)
 
--- យន្តការ God Mode តាមរយៈ Hitbox Fake Offset & State Bypass
 RunService.Stepped:Connect(function()
     if GodModeEnabled then
         local char = Player.Character
         if char then
             local hum = char:FindFirstChildOfClass("Humanoid")
             if hum then
-                -- ការពារការដកឈាមពី Ragdoll និង Touch
                 hum:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
-                hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
                 hum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+                hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
             end
-            for _, part in ipairs(char:GetChildren()) do
-                if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
-                    part.CanTouch = false
+            for _, v in ipairs(char:GetChildren()) do
+                if v:IsA("BasePart") and v.Name ~= "HumanoidRootPart" then
+                    v.CanTouch = false
                 end
             end
         end
