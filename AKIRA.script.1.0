@@ -1250,9 +1250,12 @@ RunService.Stepped:Connect(function()
         end
     end
 end)
+
 -- ============================================================
--- AUTO RUN TO SAFE ZONE (SMART ESCAPE - DROP EGG CANCEL FIX)
+-- AUTO RUN TO SAFE ZONE (100% FULL FIX EDITION - PATHFINDING)
 -- ============================================================
+local PathfindingService = game:GetService("PathfindingService")
+
 local AutoSafeZoneEnabled = false
 local IsRunningToSafeZone = false
 
@@ -1347,7 +1350,7 @@ szcToggle.Activated:Connect(function()
     AutoSafeZoneEnabled = not AutoSafeZoneEnabled
 
     if AutoSafeZoneEnabled then
-        szcStatus.Text = "ស្ថានភាព៖ រង់ចាំរើស Egg"
+        szcStatus.Text = "ស្ថានភាព៖ រង់ចាំលួច Egg"
         szcStatus.TextColor3 = Color3.fromRGB(80, 255, 140)
         tween(szcToggle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(0, 140, 255)})
         tween(szcThumb, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
@@ -1364,9 +1367,9 @@ szcToggle.Activated:Connect(function()
     end
 end)
 
--- ពិនិត្យមើលវត្តមានប៊ូតុង Drop ឬ Egg ជាប់ខ្លួន
+-- ពិនិត្យមើលវត្តមានប៊ូតុង Drop ឬ Egg ជាប់ខ្លួនយ៉ាងម៉ត់ចត់
 local function isStillHoldingEgg(character)
-    -- ១. ឆែកមើលប៊ូតុង Drop លើអេក្រង់ (UI)
+    -- ១. ឆែកមើលប៊ូតុង Drop
     for _, guiObj in ipairs(PlayerGui:GetChildren()) do
         if guiObj:IsA("ScreenGui") and guiObj.Name ~= "AkiraScriptHub" and guiObj.Enabled then
             for _, btn in ipairs(guiObj:GetDescendants()) do
@@ -1380,11 +1383,11 @@ local function isStillHoldingEgg(character)
         end
     end
 
-    -- ២. ឆែកមើល Part ឬ Model ពងមាន់ជាប់នឹង Character
+    -- ២. ឆែកមើល Part ឬ Model ជាប់តួអង្គ
     if character then
         for _, child in ipairs(character:GetChildren()) do
             local name = string.lower(child.Name)
-            if (child:IsA("Model") or child:IsA("BasePart")) and (string.find(name, "egg") or string.find(name, "ពង")) then
+            if (child:IsA("Model") or child:IsA("BasePart")) and (string.find(name, "egg") or string.find(name, "ពង") or string.find(name, "carry")) then
                 return true
             end
         end
@@ -1393,7 +1396,7 @@ local function isStillHoldingEgg(character)
     return false
 end
 
--- ស្វែងរកទីតាំង Safe Zone ដែលនៅជិតបំផុត
+-- ស្វែងរក Safe Zone ជិតបំផុត
 local function getNearestSafeZone(myPos)
     local targetPos = nil
     local shortestDist = math.huge
@@ -1411,7 +1414,6 @@ local function getNearestSafeZone(myPos)
     if not targetPos then
         targetPos = Vector3.new(500.62, 70.28, -366.64)
     end
-
     return targetPos
 end
 
@@ -1436,7 +1438,7 @@ local function getNearestChaser(myRoot)
     return monster, nearestDist
 end
 
--- ដំណើរការរត់ចូល Safe Zone
+-- ដំណើរការរត់ចូល Safe Zone ដោយប្រើប្រព័ន្ធ Pathfinding (គេចជញ្ជាំង មិនទាក់ផ្លូវ)
 local function RunToSafety(character)
     local humanoid = character:FindFirstChildOfClass("Humanoid")
     local root = character:FindFirstChild("HumanoidRootPart")
@@ -1449,11 +1451,18 @@ local function RunToSafety(character)
     local targetSafeZone = getNearestSafeZone(root.Position)
 
     task.spawn(function()
+        local path = PathfindingService:CreatePath({
+            AgentRadius = 2.5,
+            AgentHeight = 5.0,
+            AgentCanJump = true,
+            WaypointSpacing = 4.0
+        })
+
         while AutoSafeZoneEnabled and IsRunningToSafeZone and character.Parent do
-            -- ពិនិត្យភ្លាមៗ៖ បើធ្លាក់ពង (ប៊ូតុង Drop បាត់ និងគ្មាន Egg ក្នុងខ្លួន) ឈប់រត់ភ្លាម!
+            -- ពិនិត្យមើលវត្តមានពងមាន់
             if not isStillHoldingEgg(character) then
                 humanoid.WalkSpeed = 16
-                humanoid:MoveTo(root.Position) -- បញ្ឈប់ជំហានដើរ
+                humanoid:MoveTo(root.Position)
                 szcStatus.Text = "ស្ថានភាព៖ ពងធ្លាក់ពីដៃ (ឈប់រត់)"
                 szcStatus.TextColor3 = Color3.fromRGB(255, 120, 120)
                 break
@@ -1466,46 +1475,59 @@ local function RunToSafety(character)
                 break
             end
 
-            -- គណនាល្បឿនឆ្លាតវៃកុំឱ្យមេដេញទាន់
+            -- គណនាល្បឿនគេចមេ (លឿនជាងមេ 3 studs/s)
             local monster, mDist = getNearestChaser(root)
             local targetSpeed = 22
 
-            if monster and mDist < 35 then
+            if monster and mDist < 40 then
                 local mHum = monster:FindFirstChildOfClass("Humanoid")
                 local mSpeed = mHum and mHum.WalkSpeed or 20
-                targetSpeed = math.clamp(mSpeed + 3, 23, 36)
+                targetSpeed = math.clamp(mSpeed + 3, 23, 38)
+            end
+            humanoid.WalkSpeed = targetSpeed
+
+            -- គណនាផ្លូវដើរគេចឧបសគ្គ
+            local success, _ = pcall(function()
+                path:ComputeAsync(root.Position, targetSafeZone)
+            end)
+
+            if success and path.Status == Enum.PathStatus.Success then
+                local waypoints = path:GetWaypoints()
+                -- រត់តាមចំណុច Waypoints ដើម្បីកុំឱ្យបុកជញ្ជាំង
+                for i = 2, math.min(#waypoints, 5) do
+                    if not isStillHoldingEgg(character) or not IsRunningToSafeZone then break end
+                    local point = waypoints[i]
+                    if point.Action == Enum.PathWaypointAction.Jump then
+                        humanoid.Jump = true
+                    end
+                    humanoid:MoveTo(point.Position)
+                    humanoid.MoveToFinished:Wait(0.2)
+                end
+            else
+                -- បើគណនា Path មិនចេញ ដើរត្រង់ទៅកាន់ Safe Zone
+                humanoid:MoveTo(targetSafeZone)
+                task.wait(0.15)
             end
 
-            humanoid.WalkSpeed = targetSpeed
-            humanoid:MoveTo(targetSafeZone)
-
-            task.wait(0.12)
+            task.wait(0.05)
         end
 
         humanoid.WalkSpeed = 16
         IsRunningToSafeZone = false
         task.wait(2)
         if AutoSafeZoneEnabled then
-            szcStatus.Text = "ស្ថានភាព៖ រង់ចាំរើស Egg"
+            szcStatus.Text = "ស្ថានភាព៖ រង់ចាំលួច Egg"
             szcStatus.TextColor3 = Color3.fromRGB(80, 255, 140)
         end
     end)
 end
 
--- ចាប់សញ្ញាពេលរើសពងមាន់ (Egg)
-ProximityPromptService.PromptTriggered:Connect(function(prompt, p)
-    if p == Player and AutoSafeZoneEnabled and not IsRunningToSafeZone then
-        local pName = string.lower(prompt.ObjectText .. " " .. prompt.ActionText .. " " .. prompt.Name)
-        if string.find(pName, "egg") or string.find(pName, "steal") or string.find(pName, "take") or string.find(pName, "pick") then
-            local char = Player.Character
-            if char then
-                -- រង់ចាំបន្តិចឱ្យពងចូលដៃ និងប៊ូតុង Drop បង្ហាញសិន
-                task.delay(0.2, function()
-                    if isStillHoldingEgg(char) then
-                        RunToSafety(char)
-                    end
-                end)
-            end
+-- តាមដានជាប្រចាំពេលប៊ូតុង Drop លេចឡើង (កែសម្រួលលឿនរហ័ស គ្មាន Lag)
+RunService.Heartbeat:Connect(function()
+    if AutoSafeZoneEnabled and not IsRunningToSafeZone then
+        local char = Player.Character
+        if char and isStillHoldingEgg(char) then
+            RunToSafety(char)
         end
     end
 end)
