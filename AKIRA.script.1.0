@@ -262,6 +262,167 @@ end
 local scriptsPage = makePage("ស្គ្រីប")
 local configPage = makePage("ការកំណត់")
 local infoPage = makePage("ព័ត៌មាន")
+-- ============================================================
+-- CONFIGURATION STATES & FUNCTIONS
+-- ============================================================
+local ConfigSettings = {
+    SoundEnabled = true,
+    RGBEnabled = true,
+    BoostFPSEnabled = false
+}
+
+-- កែប្រែអនុគមន៍ចាក់សំឡេង ឱ្យស៊ីជាមួយ Toggle សំឡេង
+local originalAkiraPlayClick = AkiraPlayClick
+AkiraPlayClick = function(speed, volume)
+    if ConfigSettings.SoundEnabled then
+        originalAkiraPlayClick(speed, volume)
+    end
+end
+
+-- ============================================================
+-- REUSABLE TOGGLE COMPONENT (សម្រាប់ TAB ការកំណត់)
+-- ============================================================
+local function createConfigToggle(titleText, defaultState, callback)
+    local card = Instance.new("Frame")
+    card.Name = "ToggleCard_" .. titleText
+    card.Size = UDim2.new(1, -10, 0, 52)
+    card.BackgroundColor3 = Color3.fromRGB(7, 16, 32)
+    card.BorderSizePixel = 0
+    card.Parent = configPage
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 10)
+    corner.Parent = card
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Thickness = 1.2
+    stroke.Color = Color3.fromRGB(0, 140, 255)
+    stroke.Transparency = 0.5
+    stroke.Parent = card
+
+    local titleLbl = Instance.new("TextLabel")
+    titleLbl.BackgroundTransparency = 1
+    titleLbl.Position = UDim2.fromOffset(14, 8)
+    titleLbl.Size = UDim2.new(1, -80, 0, 18)
+    titleLbl.Font = Enum.Font.FredokaOne
+    titleLbl.Text = titleText
+    titleLbl.TextSize = 12
+    titleLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleLbl.TextXAlignment = Enum.TextXAlignment.Left
+    titleLbl.Parent = card
+
+    local statusLbl = Instance.new("TextLabel")
+    statusLbl.BackgroundTransparency = 1
+    statusLbl.Position = UDim2.fromOffset(14, 27)
+    statusLbl.Size = UDim2.new(1, -80, 0, 16)
+    statusLbl.Font = Enum.Font.FredokaOne
+    statusLbl.Text = defaultState and "ស្ថានភាព៖ បើក" or "ស្ថានភាព៖ បិទ"
+    statusLbl.TextSize = 10
+    statusLbl.TextColor3 = defaultState and Color3.fromRGB(80, 255, 140) or Color3.fromRGB(130, 150, 180)
+    statusLbl.TextXAlignment = Enum.TextXAlignment.Left
+    statusLbl.Parent = card
+
+    -- Toggle Switch Button
+    local toggleBtn = Instance.new("TextButton")
+    toggleBtn.AnchorPoint = Vector2.new(1, 0.5)
+    toggleBtn.Position = UDim2.new(1, -14, 0.5, 0)
+    toggleBtn.Size = UDim2.fromOffset(46, 22)
+    toggleBtn.BackgroundColor3 = defaultState and Color3.fromRGB(0, 140, 255) or Color3.fromRGB(24, 40, 68)
+    toggleBtn.BorderSizePixel = 0
+    toggleBtn.Text = ""
+    toggleBtn.AutoButtonColor = false
+    toggleBtn.Parent = card
+
+    local tCorner = Instance.new("UICorner")
+    tCorner.CornerRadius = UDim.new(1, 0)
+    tCorner.Parent = toggleBtn
+
+    local thumb = Instance.new("Frame")
+    thumb.AnchorPoint = Vector2.new(0, 0.5)
+    thumb.Position = defaultState and UDim2.new(1, -19, 0.5, 0) or UDim2.new(0, 3, 0.5, 0)
+    thumb.Size = UDim2.fromOffset(16, 16)
+    thumb.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    thumb.BorderSizePixel = 0
+    thumb.Parent = toggleBtn
+
+    local thCorner = Instance.new("UICorner")
+    thCorner.CornerRadius = UDim.new(1, 0)
+    thCorner.Parent = thumb
+
+    local state = defaultState
+    toggleBtn.Activated:Connect(function()
+        AkiraPlayClick()
+        state = not state
+        
+        if state then
+            statusLbl.Text = "ស្ថានភាព៖ បើក"
+            statusLbl.TextColor3 = Color3.fromRGB(80, 255, 140)
+            tween(toggleBtn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(0, 140, 255)})
+            tween(thumb, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+                Position = UDim2.new(1, -19, 0.5, 0)
+            })
+        else
+            statusLbl.Text = "ស្ថានភាព៖ បិទ"
+            statusLbl.TextColor3 = Color3.fromRGB(130, 150, 180)
+            tween(toggleBtn, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(24, 40, 68)})
+            tween(thumb, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+                Position = UDim2.new(0, 3, 0.5, 0)
+            })
+        end
+
+        if callback then
+            callback(state)
+        end
+    end)
+
+    return card
+end
+
+-- ============================================================
+-- បន្ថែម TOGGLES ចូលក្នុង CONFIG PAGE
+-- ============================================================
+
+-- ១. Toggle សំឡេងចុច UI
+createConfigToggle("សំឡេងចុច UI (Sound Effects)", true, function(state)
+    ConfigSettings.SoundEnabled = state
+end)
+
+-- ២. Toggle ភ្លើង RGB Border (សន្សំថ្ម/FPS)
+createConfigToggle("ភ្លើង RGB រត់ជុំវិញ (RGB Effects)", true, function(state)
+    ConfigSettings.RGBEnabled = state
+    rgbStrokeGradient.Enabled = state
+    logoRGB.Enabled = state
+    dotRGB.Enabled = state
+    
+    if not state then
+        mainStroke.Color = Color3.fromRGB(0, 140, 255)
+        logoCardStroke.Color = Color3.fromRGB(0, 140, 255)
+        dotStroke.Color = Color3.fromRGB(0, 140, 255)
+    else
+        mainStroke.Color = Color3.fromRGB(255, 255, 255)
+        logoCardStroke.Color = Color3.fromRGB(255, 255, 255)
+        dotStroke.Color = Color3.fromRGB(255, 255, 255)
+    end
+end)
+
+-- ៣. Toggle កាត់បន្ថយ Lag (Boost FPS)
+createConfigToggle("កាត់បន្ថយភាពរអាក់រអួល (Boost FPS)", false, function(state)
+    ConfigSettings.BoostFPSEnabled = state
+    local Lighting = game:GetService("Lighting")
+    
+    if state then
+        Lighting.GlobalShadows = false
+        Lighting.FogEnd = 9e9
+        for _, effect in ipairs(Lighting:GetChildren()) do
+            if effect:IsA("PostEffect") then
+                effect.Enabled = false
+            end
+        end
+    else
+        Lighting.GlobalShadows = true
+        Lighting.FogEnd = 1000
+    end
+end)
 
 local function createTabButton(text, iconAssetId, yOffset)
     local btn = Instance.new("TextButton")
