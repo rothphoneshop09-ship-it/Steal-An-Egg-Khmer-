@@ -263,6 +263,142 @@ local scriptsPage = makePage("ស្គ្រីប")
 local configPage = makePage("ការកំណត់")
 local infoPage = makePage("ព័ត៌មាន")
 -- ============================================================
+-- ផ្នែកព័ត៌មាន (INFO PAGE COMPONENTS)
+-- ============================================================
+
+-- អនុគមន៍បង្កើត Card បង្ហាញព័ត៌មាន
+local function createInfoCard(iconAsset, titleText, descText, subDescText)
+    local card = Instance.new("Frame")
+    card.Name = "InfoCard"
+    card.Size = UDim2.new(1, -10, 0, 56)
+    card.BackgroundColor3 = Color3.fromRGB(7, 16, 32)
+    card.BorderSizePixel = 0
+    card.Parent = infoPage
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 10)
+    corner.Parent = card
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Thickness = 1.2
+    stroke.Color = Color3.fromRGB(0, 140, 255)
+    stroke.Transparency = 0.5
+    stroke.Parent = card
+
+    local iconBox = Instance.new("Frame")
+    iconBox.Size = UDim2.fromOffset(38, 38)
+    iconBox.Position = UDim2.fromOffset(9, 9)
+    iconBox.BackgroundColor3 = Color3.fromRGB(12, 26, 52)
+    iconBox.BorderSizePixel = 0
+    iconBox.Parent = card
+
+    local iconCorner = Instance.new("UICorner")
+    iconCorner.CornerRadius = UDim.new(0, 8)
+    iconCorner.Parent = iconBox
+
+    local iconImg = Instance.new("ImageLabel")
+    iconImg.BackgroundTransparency = 1
+    iconImg.AnchorPoint = Vector2.new(0.5, 0.5)
+    iconImg.Position = UDim2.fromScale(0.5, 0.5)
+    iconImg.Size = UDim2.fromOffset(20, 20)
+    iconImg.Image = iconAsset
+    iconImg.ImageColor3 = Color3.fromRGB(0, 180, 255)
+    iconImg.Parent = iconBox
+
+    local tLbl = Instance.new("TextLabel")
+    tLbl.BackgroundTransparency = 1
+    tLbl.Position = UDim2.fromOffset(56, 10)
+    tLbl.Size = UDim2.new(1, -66, 0, 18)
+    tLbl.Font = Enum.Font.FredokaOne
+    tLbl.Text = titleText
+    tLbl.TextSize = 12
+    tLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+    tLbl.TextXAlignment = Enum.TextXAlignment.Left
+    tLbl.Parent = card
+
+    local dLbl = Instance.new("TextLabel")
+    dLbl.BackgroundTransparency = 1
+    dLbl.Position = UDim2.fromOffset(56, 29)
+    dLbl.Size = UDim2.new(1, -66, 0, 16)
+    dLbl.Font = Enum.Font.GothamBold
+    dLbl.RichText = true
+    dLbl.Text = descText .. (subDescText and (' • <font color="rgb(120, 150, 190)">' .. subDescText .. '</font>') or "")
+    dLbl.TextSize = 10
+    dLbl.TextColor3 = Color3.fromRGB(0, 210, 255)
+    dLbl.TextXAlignment = Enum.TextXAlignment.Left
+    dLbl.Parent = card
+
+    return card
+end
+
+-- ១. Card ម្ចាស់ Hub (Developer Info)
+createInfoCard(
+    "rbxassetid://10747373176",
+    "អ្នកអភិវឌ្ឍន៍ (DEVELOPER)",
+    "BENZ",
+    "AKIRA Hub Creator"
+)
+
+-- ២. Card កំណែ Script (Script Version & Status)
+createInfoCard(
+    "rbxassetid://10734950020",
+    "កំណែស្គ្រីប (HUB VERSION)",
+    "v1.0.0",
+    "ស្ថានភាព៖ ដំណើរការធម្មតា"
+)
+
+-- ៣. Card ព័ត៌មានគណនីអ្នកប្រើ (User Data)
+createInfoCard(
+    "rbxassetid://10709790948",
+    "គណនីអ្នកលេង (PLAYER INFO)",
+    tostring(Player.Name),
+    "ID: " .. tostring(Player.UserId)
+)
+
+-- ៤. ប៊ូតុង Copy Link Telegram (Copy Link Button)
+local copyCard = Instance.new("Frame")
+copyCard.Size = UDim2.new(1, -10, 0, 48)
+copyCard.BackgroundColor3 = Color3.fromRGB(7, 16, 32)
+copyCard.BorderSizePixel = 0
+copyCard.Parent = infoPage
+
+local ccCorner = Instance.new("UICorner")
+ccCorner.CornerRadius = UDim.new(0, 10)
+ccCorner.Parent = copyCard
+
+local ccStroke = Instance.new("UIStroke")
+ccStroke.Thickness = 1.2
+ccStroke.Color = Color3.fromRGB(0, 140, 255)
+ccStroke.Transparency = 0.5
+ccStroke.Parent = copyCard
+
+local copyBtn = Instance.new("TextButton")
+copyBtn.Size = UDim2.new(1, -16, 0, 32)
+copyBtn.Position = UDim2.fromOffset(8, 8)
+copyBtn.BackgroundColor3 = Color3.fromRGB(0, 140, 255)
+copyBtn.BorderSizePixel = 0
+copyBtn.Font = Enum.Font.FredokaOne
+copyBtn.Text = "ចម្លងតំណភ្ជាប់ TELEGRAM"
+copyBtn.TextSize = 11
+copyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+copyBtn.AutoButtonColor = false
+copyBtn.Parent = copyCard
+
+local cbCorner = Instance.new("UICorner")
+cbCorner.CornerRadius = UDim.new(0, 8)
+cbCorner.Parent = copyBtn
+
+copyBtn.Activated:Connect(function()
+    AkiraPlayClick()
+    if setclipboard then
+        setclipboard("https://t.me/seeyoustore2") -- ដាក់ Link Telegram របស់អ្នកនៅត្រង់នេះ
+        copyBtn.Text = "បានចម្លងរួចរាល់! (COPIED)"
+        task.wait(1.5)
+        copyBtn.Text = "ចម្លងតំណភ្ជាប់ TELEGRAM"
+    end
+end)
+
+-- ============================================================
 -- CONFIGURATION STATES & FUNCTIONS
 -- ============================================================
 local ConfigSettings = {
