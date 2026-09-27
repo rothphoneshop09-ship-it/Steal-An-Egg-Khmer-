@@ -515,6 +515,125 @@ local function createConfigToggle(titleText, defaultState, callback)
 end
 
 -- ============================================================
+-- INSTANT INTERACT (PROXIMITY PROMPT)
+-- ============================================================
+local InstantPromptEnabled = false
+
+local fastPromptCard = Instance.new("Frame")
+fastPromptCard.Name = "FastPromptCard"
+fastPromptCard.Size = UDim2.new(1, -10, 0, 60)
+fastPromptCard.BackgroundColor3 = Color3.fromRGB(7, 16, 32)
+fastPromptCard.BorderSizePixel = 0
+fastPromptCard.Parent = scriptsPage
+
+local fpcCorner = Instance.new("UICorner")
+fpcCorner.CornerRadius = UDim.new(0, 12)
+fpcCorner.Parent = fastPromptCard
+
+local fpcStroke = Instance.new("UIStroke")
+fpcStroke.Thickness = 1.2
+fpcStroke.Color = Color3.fromRGB(0, 140, 255)
+fpcStroke.Transparency = 0.5
+fpcStroke.Parent = fastPromptCard
+
+local fpIconBox = Instance.new("Frame")
+fpIconBox.Position = UDim2.fromOffset(8, 8)
+fpIconBox.Size = UDim2.fromOffset(44, 44)
+fpIconBox.BackgroundColor3 = Color3.fromRGB(12, 26, 52)
+fpIconBox.BorderSizePixel = 0
+fpIconBox.Parent = fastPromptCard
+
+local fpiCorner = Instance.new("UICorner")
+fpiCorner.CornerRadius = UDim.new(0, 10)
+fpiCorner.Parent = fpIconBox
+
+local fpIcon = Instance.new("ImageLabel")
+fpIcon.BackgroundTransparency = 1
+fpIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+fpIcon.Position = UDim2.fromScale(0.5, 0.5)
+fpIcon.Size = UDim2.fromOffset(24, 24)
+fpIcon.Image = "rbxassetid://10709768567"
+fpIcon.ImageColor3 = Color3.fromRGB(0, 160, 255)
+fpIcon.Parent = fpIconBox
+
+local fpTitle = Instance.new("TextLabel")
+fpTitle.BackgroundTransparency = 1
+fpTitle.Position = UDim2.fromOffset(62, 11)
+fpTitle.Size = UDim2.new(1, -140, 0, 20)
+fpTitle.Font = Enum.Font.FredokaOne
+fpTitle.RichText = true
+fpTitle.Text = 'ចុចយកភ្លាមៗ <font color="rgb(0, 210, 255)">(FAST PROMPT)</font>'
+fpTitle.TextSize = 13
+fpTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+fpTitle.TextXAlignment = Enum.TextXAlignment.Left
+fpTitle.Parent = fastPromptCard
+
+local fpStatus = Instance.new("TextLabel")
+fpStatus.BackgroundTransparency = 1
+fpStatus.Position = UDim2.fromOffset(62, 31)
+fpStatus.Size = UDim2.new(1, -140, 0, 16)
+fpStatus.Font = Enum.Font.FredokaOne
+fpStatus.Text = "ស្ថានភាព៖ បិទ"
+fpStatus.TextSize = 10
+fpStatus.TextColor3 = Color3.fromRGB(130, 150, 180)
+fpStatus.TextXAlignment = Enum.TextXAlignment.Left
+fpStatus.Parent = fastPromptCard
+
+local fpToggle = Instance.new("TextButton")
+fpToggle.AnchorPoint = Vector2.new(1, 0.5)
+fpToggle.Position = UDim2.new(1, -14, 0.5, 0)
+fpToggle.Size = UDim2.fromOffset(48, 24)
+fpToggle.BackgroundColor3 = Color3.fromRGB(24, 40, 68)
+fpToggle.BorderSizePixel = 0
+fpToggle.Text = ""
+fpToggle.AutoButtonColor = false
+fpToggle.Parent = fastPromptCard
+
+local fptCorner = Instance.new("UICorner")
+fptCorner.CornerRadius = UDim.new(1, 0)
+fptCorner.Parent = fpToggle
+
+local fpThumb = Instance.new("Frame")
+fpThumb.AnchorPoint = Vector2.new(0, 0.5)
+fpThumb.Position = UDim2.new(0, 3, 0.5, 0)
+fpThumb.Size = UDim2.fromOffset(18, 18)
+fpThumb.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+fpThumb.BorderSizePixel = 0
+fpThumb.Parent = fpToggle
+
+local fptbCorner = Instance.new("UICorner")
+fptbCorner.CornerRadius = UDim.new(1, 0)
+fptbCorner.Parent = fpThumb
+
+fpToggle.Activated:Connect(function()
+    AkiraPlayClick()
+    InstantPromptEnabled = not InstantPromptEnabled
+    
+    if InstantPromptEnabled then
+        fpStatus.Text = "ស្ថានភាព៖ បើកដំណើរការ"
+        fpStatus.TextColor3 = Color3.fromRGB(80, 255, 140)
+        tween(fpToggle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(0, 140, 255)})
+        tween(fpThumb, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+            Position = UDim2.new(1, -21, 0.5, 0)
+        })
+    else
+        fpStatus.Text = "ស្ថានភាព៖ បិទ"
+        fpStatus.TextColor3 = Color3.fromRGB(130, 150, 180)
+        tween(fpToggle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(24, 40, 68)})
+        tween(fpThumb, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
+            Position = UDim2.new(0, 3, 0.5, 0)
+        })
+    end
+end)
+
+-- មុខងារបំបាត់ពេលរង់ចាំ Hold Duration របស់ Prompt
+ProximityPromptService.PromptShown:Connect(function(prompt)
+    if InstantPromptEnabled then
+        prompt.HoldDuration = 0
+    end
+end)
+
+-- ============================================================
 -- បន្ថែម TOGGLES ចូលក្នុង CONFIG PAGE
 -- ============================================================
 
