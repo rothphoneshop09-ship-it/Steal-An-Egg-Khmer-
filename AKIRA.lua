@@ -1,13 +1,8 @@
 --[[
-    AKIRA SCRIPT HUB • PREMIUM KHMER EDITION
-    លក្ខណៈពិសេសកម្រិត Premium៖
-    - UI រចនាបែប Glassmorphism ទំនើប គែមពន្លឺ Neon Glow
-    - ភាសាខ្មែរទូទាំងផ្ទាំងបញ្ជា (Menus, Buttons, Notifications)
-    - ប៊ូតុងអណ្ដែតជារូបភាព Logo AKIRA មាន Effect ដកដង្ហើមពន្លឺ
-    - Touch & Mouse dragging (របារអូសខាងក្រោមយ៉ាងរលូន)
-    - Touch & Mouse resize handle (↘)
-    - ប្រព័ន្ធ Anti-Hit ដំណើរការលឿន និងមានសុវត្ថិភាព
-    - ការពារ UI Detection សម្រាប់ Mobile Executors (gethui / protect_gui)
+    AKIRA SCRIPT HUB • កំណែកែសម្រួលភាសាខ្មែរត្រឹមត្រូវ
+    - គាំទ្រ Font ខ្មែរច្បាស់ល្អ មិនបាត់ស្រៈ ឬជើងអក្សរ
+    - ប៊ូតុងអណ្ដែតជារូប Logo AKIRA ដំណើរការរលូន
+    - មុខងារ Anti-Hit និង Config ដំណើរការពេញលេញ
 ]]
 
 local Players = game:GetService("Players")
@@ -16,10 +11,29 @@ local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local SoundService = game:GetService("SoundService")
 local ProximityPromptService = game:GetService("ProximityPromptService")
+local CoreGui = game:GetService("CoreGui")
 
 local Player = Players.LocalPlayer
 local PlayerGui = Player:WaitForChild("PlayerGui")
-local GuiParent = (gethui and gethui()) or (syn and syn.protect_gui and PlayerGui) or PlayerGui
+
+-- Safeguard សម្រាប់ Executor ទូរស័ព្ទ
+local GuiParent = nil
+pcall(function()
+    if gethui then
+        GuiParent = gethui()
+    elseif syn and syn.protect_gui then
+        syn.protect_gui(PlayerGui)
+        GuiParent = PlayerGui
+    else
+        GuiParent = CoreGui:FindFirstChild("RobloxGui") or PlayerGui
+    end
+end)
+if not GuiParent then GuiParent = PlayerGui end
+
+local old = GuiParent:FindFirstChild("AkiraScriptHub") or PlayerGui:FindFirstChild("AkiraScriptHub")
+if old then
+    old:Destroy()
+end
 
 -- ============================================================
 -- កំណត់រូបភាព LOGO និងសំឡេង
@@ -46,18 +60,13 @@ local function AkiraPlayClick(speed, volume)
     end)
 end
 
-local old = GuiParent:FindFirstChild("AkiraScriptHub")
-if old then
-    old:Destroy()
-end
-
--- ពណ៌ Theme កម្រិត Premium
+-- ពណ៌ Theme
 local Themes = {
-    {Name = "ខៀវអគ្គិសនី (Cyber Blue)", Main = Color3.fromRGB(10, 14, 22), Panel = Color3.fromRGB(16, 23, 36), Accent = Color3.fromRGB(0, 175, 255), ButtonDark = Color3.fromRGB(12, 45, 80)},
-    {Name = "ក្រហមភ្លើង (Akira Red)", Main = Color3.fromRGB(18, 10, 14), Panel = Color3.fromRGB(28, 16, 22), Accent = Color3.fromRGB(255, 60, 80), ButtonDark = Color3.fromRGB(90, 15, 25)},
-    {Name = "ស្វាយរាត្រី (Neon Purple)", Main = Color3.fromRGB(14, 10, 22), Panel = Color3.fromRGB(24, 16, 36), Accent = Color3.fromRGB(170, 85, 255), ButtonDark = Color3.fromRGB(65, 25, 105)},
-    {Name = "មាសប្រណិត (Luxury Gold)", Main = Color3.fromRGB(18, 16, 12), Panel = Color3.fromRGB(28, 25, 18), Accent = Color3.fromRGB(255, 195, 60), ButtonDark = Color3.fromRGB(85, 65, 15)},
-    {Name = "បៃតងត្បូង (Emerald Green)", Main = Color3.fromRGB(10, 18, 14), Panel = Color3.fromRGB(16, 28, 22), Accent = Color3.fromRGB(45, 225, 130), ButtonDark = Color3.fromRGB(15, 75, 45)},
+    {Name = "ខៀវអគ្គិសនី", Main = Color3.fromRGB(10, 14, 22), Panel = Color3.fromRGB(16, 23, 36), Accent = Color3.fromRGB(0, 175, 255), ButtonDark = Color3.fromRGB(12, 45, 80)},
+    {Name = "ក្រហមភ្លើង", Main = Color3.fromRGB(18, 10, 14), Panel = Color3.fromRGB(28, 16, 22), Accent = Color3.fromRGB(255, 60, 80), ButtonDark = Color3.fromRGB(90, 15, 25)},
+    {Name = "ស្វាយរាត្រី", Main = Color3.fromRGB(14, 10, 22), Panel = Color3.fromRGB(24, 16, 36), Accent = Color3.fromRGB(170, 85, 255), ButtonDark = Color3.fromRGB(65, 25, 105)},
+    {Name = "មាសប្រណិត", Main = Color3.fromRGB(18, 16, 12), Panel = Color3.fromRGB(28, 25, 18), Accent = Color3.fromRGB(255, 195, 60), ButtonDark = Color3.fromRGB(85, 65, 15)},
+    {Name = "បៃតងត្បូង", Main = Color3.fromRGB(10, 18, 14), Panel = Color3.fromRGB(16, 28, 22), Accent = Color3.fromRGB(45, 225, 130), ButtonDark = Color3.fromRGB(15, 75, 45)},
 }
 
 local ThemeIndex = 1
@@ -78,7 +87,7 @@ local gui = Instance.new("ScreenGui")
 gui.Name = "AkiraScriptHub"
 gui.ResetOnSpawn = false
 gui.IgnoreGuiInset = true
-gui.DisplayOrder = 9999
+gui.DisplayOrder = 99999
 gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 gui.Parent = GuiParent
 
@@ -86,7 +95,7 @@ local scale = Instance.new("UIScale")
 scale.Scale = 0.88
 scale.Parent = gui
 
--- ស្រមោលខាងក្រៅ (Deep Shadow Glow)
+-- ស្រមោល Shadow
 local shadow = Instance.new("Frame")
 shadow.Name = "Shadow"
 shadow.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -95,13 +104,14 @@ shadow.Size = Sizes[SizeIndex]
 shadow.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 shadow.BackgroundTransparency = 0.35
 shadow.BorderSizePixel = 0
+shadow.Visible = true
 shadow.Parent = gui
 
 local shadowCorner = Instance.new("UICorner")
 shadowCorner.CornerRadius = UDim.new(0, 18)
 shadowCorner.Parent = shadow
 
--- ផ្ទាំងមេ Main UI (Premium Frosted Glass)
+-- ផ្ទាំងមេ Main Frame
 local main = Instance.new("Frame")
 main.Name = "Main"
 main.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -110,6 +120,7 @@ main.Size = Sizes[SizeIndex]
 main.BackgroundColor3 = Themes[ThemeIndex].Main
 main.BorderSizePixel = 0
 main.ClipsDescendants = true
+main.Visible = true
 main.Parent = gui
 
 local mainCorner = Instance.new("UICorner")
@@ -133,9 +144,9 @@ local title = Instance.new("TextLabel")
 title.BackgroundTransparency = 1
 title.Position = UDim2.fromOffset(70, 6)
 title.Size = UDim2.new(1, -140, 0, 26)
-title.Font = Enum.Font.GothamBold
+title.Font = Enum.Font.SourceSansBold
 title.Text = "AKIRA SCRIPT"
-title.TextSize = 19
+title.TextSize = 22
 title.TextXAlignment = Enum.TextXAlignment.Center
 title.TextColor3 = Color3.new(1, 1, 1)
 title.Parent = top
@@ -164,12 +175,12 @@ end)
 local subtitle = Instance.new("TextLabel")
 subtitle.BackgroundTransparency = 1
 subtitle.Position = UDim2.new(0, 50, 0, 32)
-subtitle.Size = UDim2.new(1, -100, 0, 16)
-subtitle.Font = Enum.Font.FredokaOne
-subtitle.Text = "ផ្ទាំងបញ្ជាទូរស័ព្ទកម្រិតខ្ពស់ • ពិសេស"
-subtitle.TextSize = 11
+subtitle.Size = UDim2.new(1, -100, 0, 18)
+subtitle.Font = Enum.Font.SourceSansBold
+subtitle.Text = "ផ្ទាំងបញ្ជាទូរស័ព្ទ • កំណែពិសេស"
+subtitle.TextSize = 14
 subtitle.TextXAlignment = Enum.TextXAlignment.Center
-subtitle.TextColor3 = Color3.fromRGB(145, 165, 190)
+subtitle.TextColor3 = Color3.fromRGB(150, 175, 205)
 subtitle.Parent = top
 
 local function topButton(text, x)
@@ -180,8 +191,8 @@ local function topButton(text, x)
     b.BackgroundColor3 = Themes[ThemeIndex].Panel
     b.BorderSizePixel = 0
     b.Text = text
-    b.Font = Enum.Font.FredokaOne
-    b.TextSize = 14
+    b.Font = Enum.Font.SourceSansBold
+    b.TextSize = 16
     b.TextColor3 = Color3.new(1, 1, 1)
     b.AutoButtonColor = false
     b.Parent = top
@@ -194,7 +205,7 @@ end
 local minimize = topButton("—", -50)
 local close = topButton("×", -10)
 
--- របារសម្រាប់អូសអេក្រង់ (Dedicated Drag Handle)
+-- របារសម្រាប់អូស
 local dragHandle = Instance.new("TextButton")
 dragHandle.Name = "AkiraDragHandle"
 dragHandle.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -204,7 +215,7 @@ dragHandle.BorderSizePixel = 0
 dragHandle.Text = ""
 dragHandle.AutoButtonColor = false
 dragHandle.ZIndex = 60
-dragHandle.Visible = false
+dragHandle.Visible = true
 dragHandle.Parent = gui
 
 local dragVisual = Instance.new("Frame")
@@ -221,7 +232,7 @@ local dragVisualCorner = Instance.new("UICorner")
 dragVisualCorner.CornerRadius = UDim.new(1, 0)
 dragVisualCorner.Parent = dragVisual
 
--- ប៊ូតុងពង្រីក/បង្រួមទំហំ (Resize Handle)
+-- Resize Handle
 local resizeHandle = Instance.new("TextButton")
 resizeHandle.Name = "AkiraResizeHandle"
 resizeHandle.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -229,12 +240,12 @@ resizeHandle.Size = UDim2.fromOffset(30, 30)
 resizeHandle.BackgroundTransparency = 1
 resizeHandle.BorderSizePixel = 0
 resizeHandle.Text = "↘"
-resizeHandle.Font = Enum.Font.GothamBlack
-resizeHandle.TextSize = 18
+resizeHandle.Font = Enum.Font.SourceSansBold
+resizeHandle.TextSize = 20
 resizeHandle.TextColor3 = Themes[ThemeIndex].Accent
 resizeHandle.AutoButtonColor = false
 resizeHandle.ZIndex = 70
-resizeHandle.Visible = false
+resizeHandle.Visible = true
 resizeHandle.Parent = gui
 
 local resizeDragging = false
@@ -242,6 +253,7 @@ local resizeStartInput
 local resizeStartSize
 
 local function updateFloatingControls()
+    if not main or not main.Parent then return end
     local x = main.Position.X.Scale
     local ox = main.Position.X.Offset
     local y = main.Position.Y.Scale
@@ -252,7 +264,7 @@ local function updateFloatingControls()
     resizeHandle.Position = UDim2.new(x, ox + halfW + 15, y, oy + halfH + 15)
 end
 
--- Sidebar (ម៉ឺនុយចំហៀង)
+-- Sidebar
 local sidebar = Instance.new("Frame")
 sidebar.Name = "Sidebar"
 sidebar.Position = UDim2.fromOffset(8, 62)
@@ -307,7 +319,6 @@ local scriptsPage = makePage("Scripts")
 local configPage = makePage("Config")
 
 local tabButtons = {}
-local tabSweepTokens = {}
 
 local function makeTab(tabKey, displayText, icon)
     local b = Instance.new("TextButton")
@@ -338,8 +349,8 @@ local function makeTab(tabKey, displayText, icon)
     label.BackgroundTransparency = 1
     label.Size = UDim2.fromScale(1, 1)
     label.Text = icon .. " " .. displayText
-    label.Font = Enum.Font.FredokaOne
-    label.TextSize = 12
+    label.Font = Enum.Font.SourceSansBold
+    label.TextSize = 14
     label.TextColor3 = Color3.fromRGB(255, 255, 255)
     label.TextXAlignment = Enum.TextXAlignment.Center
     label.ZIndex = b.ZIndex + 2
@@ -361,11 +372,11 @@ local function refreshTabs()
         local tabLabel = b:FindFirstChild("TabLabel")
         if selected then
             if sweepBg then sweepBg.Visible = true end
-            if tabLabel then tabLabel.TextColor3 = Color3.fromRGB(255, 255, 255); tabLabel.TextSize = 13 end
+            if tabLabel then tabLabel.TextColor3 = Color3.fromRGB(255, 255, 255); tabLabel.TextSize = 15 end
             tween(b, TweenInfo.new(0.18, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, -8, 0, 42)})
         else
             if sweepBg then sweepBg.Visible = false end
-            if tabLabel then tabLabel.TextColor3 = Color3.fromRGB(170, 185, 205); tabLabel.TextSize = 12 end
+            if tabLabel then tabLabel.TextColor3 = Color3.fromRGB(170, 185, 205); tabLabel.TextSize = 14 end
             tween(b, TweenInfo.new(0.14, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, -12, 0, 38)})
         end
     end
@@ -387,7 +398,7 @@ scriptsTab.Activated:Connect(function() AkiraPlayClick(); switchTab("Scripts") e
 configTab.Activated:Connect(function() AkiraPlayClick(); switchTab("Config") end)
 
 -- ============================================================
--- មុខងារ ANTI-HIT (ការពារការវាយ)
+-- មុខងារ ANTI-HIT
 -- ============================================================
 local AntiHitEnabled = false
 local IsAntiHitRunning = false
@@ -416,9 +427,9 @@ local antiHitTitle = Instance.new("TextLabel")
 antiHitTitle.BackgroundTransparency = 1
 antiHitTitle.Position = UDim2.fromOffset(14, 8)
 antiHitTitle.Size = UDim2.new(1, -28, 0, 24)
-antiHitTitle.Text = "🛡  ប្រព័ន្ធការពារការវាយ (Anti-Hit)"
-antiHitTitle.Font = Enum.Font.FredokaOne
-antiHitTitle.TextSize = 13
+antiHitTitle.Text = "🛡  ប្រព័ន្ធគេចការវាយ (Anti-Hit)"
+antiHitTitle.Font = Enum.Font.SourceSansBold
+antiHitTitle.TextSize = 15
 antiHitTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
 antiHitTitle.TextXAlignment = Enum.TextXAlignment.Left
 antiHitTitle.ZIndex = antiHitCard.ZIndex + 2
@@ -429,8 +440,8 @@ antiHitStatus.BackgroundTransparency = 1
 antiHitStatus.Position = UDim2.fromOffset(14, 34)
 antiHitStatus.Size = UDim2.new(1, -28, 0, 18)
 antiHitStatus.Text = "ស្ថានភាព៖ បិទ"
-antiHitStatus.Font = Enum.Font.FredokaOne
-antiHitStatus.TextSize = 11
+antiHitStatus.Font = Enum.Font.SourceSansBold
+antiHitStatus.TextSize = 13
 antiHitStatus.TextColor3 = Color3.fromRGB(255, 140, 140)
 antiHitStatus.TextXAlignment = Enum.TextXAlignment.Left
 antiHitStatus.ZIndex = antiHitCard.ZIndex + 2
@@ -438,7 +449,7 @@ antiHitStatus.Parent = antiHitCard
 
 local function setAntiHitVisual(enabled)
     if enabled then
-        antiHitStatus.Text = "ស្ថានភាព៖ កំពុងបើកដំណើរការ ✓"
+        antiHitStatus.Text = "ស្ថានភាព៖ កំពុងបើកដំណើរការ"
         antiHitStatus.TextColor3 = Color3.fromRGB(110, 255, 145)
         antiHitCard.BackgroundColor3 = Color3.fromRGB(20, 85, 45)
         antiHitStroke.Color = Color3.fromRGB(75, 255, 130)
@@ -501,15 +512,15 @@ end)
 setAntiHitVisual(false)
 
 -- ============================================================
--- ផ្ទាំងកំណត់ (CONFIG TAB IN KHMER)
+-- ផ្ទាំង CONFIG
 -- ============================================================
 local function configLabel(text)
     local l = Instance.new("TextLabel")
     l.Size = UDim2.new(1, -4, 0, 24)
     l.BackgroundTransparency = 1
     l.Text = text
-    l.Font = Enum.Font.FredokaOne
-    l.TextSize = 12
+    l.Font = Enum.Font.SourceSansBold
+    l.TextSize = 14
     l.TextColor3 = Color3.fromRGB(180, 200, 225)
     l.TextXAlignment = Enum.TextXAlignment.Left
     l.Parent = configPage
@@ -522,8 +533,8 @@ local function configButton(text)
     b.BackgroundColor3 = Themes[ThemeIndex].Panel
     b.BorderSizePixel = 0
     b.Text = text
-    b.Font = Enum.Font.FredokaOne
-    b.TextSize = 11
+    b.Font = Enum.Font.SourceSansBold
+    b.TextSize = 13
     b.TextColor3 = Color3.new(1, 1, 1)
     b.AutoButtonColor = false
     b.Parent = configPage
@@ -533,7 +544,7 @@ local function configButton(text)
     return b
 end
 
-configLabel("ទំហំផ្ទាំងបញ្ជា (GUI SIZE)")
+configLabel("ទំហំផ្ទាំងបញ្ជា")
 
 local sizeRow = Instance.new("Frame")
 sizeRow.Size = UDim2.new(1, -4, 0, 40)
@@ -569,7 +580,7 @@ end
 sizeMinus.Activated:Connect(function() AkiraPlayClick(); setSize(SizeIndex - 1) end)
 sizePlus.Activated:Connect(function() AkiraPlayClick(); setSize(SizeIndex + 1) end)
 
-configLabel("ពណ៌រូបរាង (THEMES)")
+configLabel("ពណ៌ផ្ទាំងបញ្ជា")
 
 local colorButton = configButton("ជ្រើសរើសពណ៌ • " .. Themes[ThemeIndex].Name)
 
@@ -586,13 +597,6 @@ colorGrid.CellPadding = UDim2.new(0, 0, 0, 6)
 colorGrid.SortOrder = Enum.SortOrder.LayoutOrder
 colorGrid.Parent = colorPopup
 
-local notification
-local notificationStroke
-local notificationBar
-local updateNotificationPosition
-local openButton
-local openStroke
-
 local function applyTheme(index)
     ThemeIndex = index
     local th = Themes[ThemeIndex]
@@ -601,8 +605,6 @@ local function applyTheme(index)
     tween(stroke, TweenInfo.new(0.2), {Color = th.Accent})
     dragVisual.BackgroundColor3 = th.Accent
     resizeHandle.TextColor3 = th.Accent
-    if notificationBar then notificationBar.BackgroundColor3 = th.Accent end
-    if notificationStroke then notificationStroke.Color = th.Accent end
     sidebar.BackgroundColor3 = th.Panel
     
     if not AntiHitEnabled then
@@ -625,8 +627,8 @@ for i, th in ipairs(Themes) do
     local b = Instance.new("TextButton")
     b.Name = th.Name
     b.Text = th.Name
-    b.Font = Enum.Font.FredokaOne
-    b.TextSize = 11
+    b.Font = Enum.Font.SourceSansBold
+    b.TextSize = 13
     b.TextColor3 = Color3.new(1, 1, 1)
     b.BackgroundColor3 = th.ButtonDark
     b.BorderSizePixel = 0
@@ -650,8 +652,8 @@ colorButton.Activated:Connect(function()
     tween(colorPopup, TweenInfo.new(0.22, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, -4, 0, h)})
 end)
 
-configLabel("ការប្រើប្រាស់")
-local closeInfo = configButton("បិទ/បើកផ្ទាំង៖ ចុចសញ្ញា × ឬចុចលើរូប Logo")
+configLabel("ព័ត៌មានបន្ថែម")
+local closeInfo = configButton("បិទ ឬ បើកផ្ទាំង៖ ចុចសញ្ញា × ឬចុចលើរូប Logo")
 closeInfo.TextColor3 = Color3.fromRGB(150, 165, 185)
 
 -- ============================================================
@@ -692,9 +694,6 @@ local function updateDrag(input)
     main.Position = newPos
     shadow.Position = newPos
     updateFloatingControls()
-    if notification and notification.Visible and updateNotificationPosition then
-        updateNotificationPosition()
-    end
 end
 
 local function endDrag(input)
@@ -759,9 +758,9 @@ UIS.InputEnded:Connect(function(input)
 end)
 
 -- ============================================================
--- FLOATING LOGO PHOTO BUTTON (AKIRA LOGO)
+-- FLOATING LOGO PHOTO BUTTON
 -- ============================================================
-openButton = Instance.new("ImageButton")
+local openButton = Instance.new("ImageButton")
 openButton.Name = "OpenAkira"
 openButton.AnchorPoint = Vector2.new(1, 0.5)
 openButton.Position = UDim2.new(1, -18, 0.5, 0)
@@ -773,94 +772,42 @@ openButton.Image = AKIRA_LOGO_ID[span_2](start_span)[span_2](end_span)
 openButton.ScaleType = Enum.ScaleType.Fit
 openButton.AutoButtonColor = false
 openButton.Visible = false
-openButton.ZIndex = 85
+openButton.ZIndex = 9999
 openButton.Parent = gui
 
 local oc = Instance.new("UICorner")
 oc.CornerRadius = UDim.new(1, 0)
 oc.Parent = openButton
 
-openStroke = Instance.new("UIStroke")
+local openStroke = Instance.new("UIStroke")
 openStroke.Thickness = 2.2
 openStroke.Color = Color3.fromRGB(0, 175, 255)
 openStroke.Transparency = 0.2
 openStroke.Parent = openButton
 
-task.spawn(function()
-    while gui.Parent and openButton.Parent do
-        local toBright = tween(openStroke, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-            Transparency = 0.05,
-            Color = Color3.fromRGB(255, 255, 255)
-        })
-        toBright.Completed:Wait()
-        local toAccent = tween(openStroke, TweenInfo.new(1.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-            Transparency = 0.45,
-            Color = Themes[ThemeIndex].Accent
-        })
-        toAccent.Completed:Wait()
-    end
-end)
-
-local mainScale = Instance.new("UIScale")
-mainScale.Scale = 1
-mainScale.Parent = main
-
-local shadowScale = Instance.new("UIScale")
-shadowScale.Scale = 1
-shadowScale.Parent = shadow
-
 local function closeGui()
     if not main.Visible then return end
-    local outInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
-    local savedClosePosition = main.Position
-    local leftExitPosition = UDim2.new(
-        savedClosePosition.X.Scale, savedClosePosition.X.Offset - 35,
-        savedClosePosition.Y.Scale, savedClosePosition.Y.Offset
-    )
-    tween(mainScale, outInfo, {Scale = 0.94})
-    tween(shadowScale, outInfo, {Scale = 0.94})
-    tween(main, outInfo, {BackgroundTransparency = 1, Position = leftExitPosition})
-    tween(shadow, outInfo, {BackgroundTransparency = 1, Position = leftExitPosition})
-    task.wait(0.3)
     main.Visible = false
     shadow.Visible = false
     dragHandle.Visible = false
     resizeHandle.Visible = false
-    if notification then notification.Visible = false end
-    main.Position = savedClosePosition
-    shadow.Position = savedClosePosition
-    mainScale.Scale = 1
-    shadowScale.Scale = 1
-    updateFloatingControls()
     openButton.Visible = true
-    tween(openButton, TweenInfo.new(0.24, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-        Size = UDim2.fromOffset(58, 58)
-    })
 end
 
 local function openGui()
     openButton.Visible = false
     main.Visible = true
     shadow.Visible = true
-    mainScale.Scale = 0.75
-    shadowScale.Scale = 0.75
-    main.BackgroundTransparency = 0
-    shadow.BackgroundTransparency = 0.35
     dragHandle.Visible = true
     resizeHandle.Visible = true
     updateFloatingControls()
-    tween(mainScale, TweenInfo.new(0.28, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Scale = 1})
-    tween(shadowScale, TweenInfo.new(0.28, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Scale = 1})
 end
 
-local minimized = false
-local savedSize = main.Size
-
 close.Activated:Connect(function() AkiraPlayClick(); closeGui() end)
+minimize.Activated:Connect(function() AkiraPlayClick(); closeGui() end)
 
 local akDragging = false
-local akDragStart
-local akStartPos
+local akDragStart, akStartPos
 openButton.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         akDragging = true
@@ -868,12 +815,14 @@ openButton.InputBegan:Connect(function(input)
         akStartPos = openButton.Position
     end
 end)
+
 UIS.InputChanged:Connect(function(input)
     if akDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
         local d = input.Position - akDragStart
         openButton.Position = UDim2.new(akStartPos.X.Scale, akStartPos.X.Offset + d.X, akStartPos.Y.Scale, akStartPos.Y.Offset + d.Y)
     end
 end)
+
 UIS.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         akDragging = false
@@ -891,225 +840,62 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
-minimize.Activated:Connect(function()
-    AkiraPlayClick()
-    closeGui()
-end)
-
 refreshTabs()
+updateFloatingControls()
 
 -- ======================================================
--- ផ្ទាំងដំណឹង (PREMIUM NOTIFICATION)
+-- ផ្ទាំង INTRO ចាប់ផ្តើម
 -- ======================================================
-notification = Instance.new("Frame")
-notification.Name = "SupportNotification"
-notification.AnchorPoint = Vector2.new(0.5, 0.5)
-notification.Size = UDim2.fromOffset(280, 48)
-notification.BackgroundColor3 = Color3.fromRGB(14, 18, 28)
-notification.BackgroundTransparency = 1
-notification.BorderSizePixel = 0
-notification.ZIndex = 90
-notification.Visible = false
-notification.Parent = gui
-
-local notificationCorner = Instance.new("UICorner")
-notificationCorner.CornerRadius = UDim.new(0, 14)
-notificationCorner.Parent = notification
-
-notificationStroke = Instance.new("UIStroke")
-notificationStroke.Thickness = 1.2
-notificationStroke.Transparency = 1
-notificationStroke.Color = Themes[ThemeIndex].Accent
-notificationStroke.Parent = notification
-
-notificationBar = Instance.new("Frame")
-notificationBar.Size = UDim2.new(0, 3, 0.58, 0)
-notificationBar.Position = UDim2.new(0, 10, 0.21, 0)
-notificationBar.BackgroundColor3 = Themes[ThemeIndex].Accent
-notificationBar.BorderSizePixel = 0
-notificationBar.ZIndex = 91
-notificationBar.Parent = notification
-
-local notificationBarCorner = Instance.new("UICorner")
-notificationBarCorner.CornerRadius = UDim.new(1, 0)
-notificationBarCorner.Parent = notificationBar
-
-local notificationText = Instance.new("TextLabel")
-notificationText.BackgroundTransparency = 1
-notificationText.Position = UDim2.fromOffset(22, 0)
-notificationText.Size = UDim2.new(1, -30, 1, 0)
-notificationText.Font = Enum.Font.FredokaOne
-notificationText.Text = "សូមស្វាគមន៍មកកាន់ AKIRA SCRIPT HUB"
-notificationText.TextSize = 12
-notificationText.TextColor3 = Color3.fromRGB(255, 255, 255)
-notificationText.TextTransparency = 1
-notificationText.TextXAlignment = Enum.TextXAlignment.Left
-notificationText.ZIndex = 91
-notificationText.Parent = notification
-
-function updateNotificationPosition()
-    if not notification then return end
-    local y = math.floor(-(main.Size.Y.Offset * 0.5) - 38)
-    notification.Position = UDim2.new(main.Position.X.Scale, main.Position.X.Offset, main.Position.Y.Scale, main.Position.Y.Offset + y)
-end
-
-local function showSupportNotification()
-    updateNotificationPosition()
-    notification.Visible = true
-    pcall(function() AkiraPlayClick(1.0, 0.30) end)
-    notification.BackgroundTransparency = 1
-    notificationText.TextTransparency = 1
-    notificationStroke.Transparency = 1
-    local startY = notification.Position.Y.Offset - 18
-    local endY = notification.Position.Y.Offset
-    notification.Position = UDim2.new(main.Position.X.Scale, main.Position.X.Offset, main.Position.Y.Scale, startY)
-    tween(notification, TweenInfo.new(0.28, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-        Position = UDim2.new(main.Position.X.Scale, main.Position.X.Offset, main.Position.Y.Scale, endY),
-        BackgroundTransparency = 0.08
-    })
-    tween(notificationText, TweenInfo.new(0.20, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {TextTransparency = 0})
-    tween(notificationStroke, TweenInfo.new(0.20), {Transparency = 0.35})
-    task.delay(2.6, function()
-        if not notification or not notification.Parent or not notification.Visible then return end
-        local outY = notification.Position.Y.Offset - 14
-        tween(notification, TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {
-            Position = UDim2.new(main.Position.X.Scale, main.Position.X.Offset, main.Position.Y.Scale, outY),
-            BackgroundTransparency = 1
-        })
-        tween(notificationText, TweenInfo.new(0.18), {TextTransparency = 1})
-        tween(notificationStroke, TweenInfo.new(0.18), {Transparency = 1})
-        task.wait(0.27)
-        if notification then notification.Visible = false end
-    end)
-end
-
--- ======================================================
--- ផ្ទាំង INTRO ចាប់ផ្តើមដំណើរការ (PREMIUM KHMER INTRO)
--- ======================================================
-main.Visible = false
-shadow.Visible = false
-dragHandle.Visible = false
-resizeHandle.Visible = false
-notification.Visible = false
-
-local intro = Instance.new("Frame")
-intro.Name = "AkiraIntro"
-intro.Size = UDim2.fromScale(1, 1)
-intro.BackgroundColor3 = Color3.fromRGB(6, 8, 14)
-intro.BackgroundTransparency = 0.15
-intro.BorderSizePixel = 0
-intro.ZIndex = 100
-intro.Parent = gui
-
-local introCard = Instance.new("Frame")
-introCard.AnchorPoint = Vector2.new(0.5, 0.5)
-introCard.Position = UDim2.fromScale(0.5, 0.52)
-introCard.Size = UDim2.fromOffset(260, 160)
-introCard.BackgroundColor3 = Color3.fromRGB(12, 16, 26)
-introCard.BorderSizePixel = 0
-introCard.ZIndex = 101
-introCard.Parent = intro
-
-local introCorner = Instance.new("UICorner")
-introCorner.CornerRadius = UDim.new(0, 20)
-introCorner.Parent = introCard
-
-local introStroke = Instance.new("UIStroke")
-introStroke.Color = Color3.fromRGB(0, 175, 255)
-introStroke.Transparency = 0.35
-introStroke.Thickness = 1.5
-introStroke.Parent = introCard
-
-local introTitle = Instance.new("TextLabel")
-introTitle.BackgroundTransparency = 1
-introTitle.Size = UDim2.new(1, -20, 0, 42)
-introTitle.Position = UDim2.fromOffset(10, 32)
-introTitle.Font = Enum.Font.GothamBold
-introTitle.Text = "AKIRA SCRIPT"
-introTitle.TextSize = 28
-introTitle.TextColor3 = Color3.new(1, 1, 1)
-introTitle.ZIndex = 102
-introTitle.Parent = introCard
-
-local introStatus = Instance.new("TextLabel")
-introStatus.BackgroundTransparency = 1
-introStatus.Size = UDim2.new(1, -30, 0, 18)
-introStatus.Position = UDim2.fromOffset(15, 84)
-introStatus.Font = Enum.Font.FredokaOne
-introStatus.Text = "កំពុងរៀបចំប្រព័ន្ធ... សូមរង់ចាំ"
-introStatus.TextSize = 12
-introStatus.TextColor3 = Color3.fromRGB(165, 185, 215)
-introStatus.ZIndex = 102
-introStatus.Parent = introCard
-
-local introBar = Instance.new("Frame")
-introBar.Size = UDim2.new(0.75, 0, 0, 4)
-introBar.Position = UDim2.new(0.125, 0, 1, -28)
-introBar.BackgroundColor3 = Color3.fromRGB(25, 35, 55)
-introBar.BorderSizePixel = 0
-introBar.ZIndex = 102
-introBar.Parent = introCard
-
-local ibc = Instance.new("UICorner")
-ibc.CornerRadius = UDim.new(1, 0)
-ibc.Parent = introBar
-
-local introFill = Instance.new("Frame")
-introFill.Size = UDim2.new(0, 0, 1, 0)
-introFill.BackgroundColor3 = Color3.fromRGB(0, 175, 255)
-introFill.BorderSizePixel = 0
-introFill.ZIndex = 103
-introFill.Parent = introBar
-
-local ifc = Instance.new("UICorner")
-ifc.CornerRadius = UDim.new(1, 0)
-ifc.Parent = introFill
-
-local introScale = Instance.new("UIScale")
-introScale.Scale = 0.84
-introScale.Parent = introCard
-
-introCard.BackgroundTransparency = 1
-introTitle.TextTransparency = 1
-introStatus.TextTransparency = 1
-introBar.BackgroundTransparency = 1
-introFill.BackgroundTransparency = 1
-
-tween(introScale, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Scale = 1})
-tween(introCard, TweenInfo.new(0.28), {BackgroundTransparency = 0.05})
-tween(introTitle, TweenInfo.new(0.25), {TextTransparency = 0})
-tween(introStatus, TweenInfo.new(0.25), {TextTransparency = 0})
-tween(introBar, TweenInfo.new(0.25), {BackgroundTransparency = 0})
-tween(introFill, TweenInfo.new(0.25), {BackgroundTransparency = 0})
-tween(introFill, TweenInfo.new(2.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Size = UDim2.new(1, 0, 1, 0)})
-
-task.wait(2.5)
-introStatus.Text = "រួចរាល់ • ដំណើរការជោគជ័យ!"
-task.wait(1.0)
-
-main.Visible = true
-shadow.Visible = true
-AkiraPlayClick(1.35, 0.24)
-mainScale.Scale = 0.78
-shadowScale.Scale = 0.78
-main.BackgroundTransparency = 0
-shadow.BackgroundTransparency = 0.35
-local handoff = TweenInfo.new(0.48, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-tween(mainScale, handoff, {Scale = 1})
-tween(shadowScale, handoff, {Scale = 1})
-
 task.spawn(function()
-    task.wait(0.05)
-    tween(introScale, TweenInfo.new(0.3, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {Scale = 0.9})
-    tween(intro, TweenInfo.new(0.32, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {BackgroundTransparency = 1})
-    tween(introCard, TweenInfo.new(0.28, Enum.EasingStyle.Quart, Enum.EasingDirection.In), {BackgroundTransparency = 1})
-    tween(introTitle, TweenInfo.new(0.2), {TextTransparency = 1})
-    tween(introStatus, TweenInfo.new(0.2), {TextTransparency = 1})
-    task.wait(0.35)
+    local intro = Instance.new("Frame")
+    intro.Name = "AkiraIntro"
+    intro.Size = UDim2.fromScale(1, 1)
+    intro.BackgroundColor3 = Color3.fromRGB(6, 8, 14)
+    intro.BackgroundTransparency = 0.15
+    intro.BorderSizePixel = 0
+    intro.ZIndex = 1000
+    intro.Parent = gui
+
+    local introCard = Instance.new("Frame")
+    introCard.AnchorPoint = Vector2.new(0.5, 0.5)
+    introCard.Position = UDim2.fromScale(0.5, 0.5)
+    introCard.Size = UDim2.fromOffset(260, 150)
+    introCard.BackgroundColor3 = Color3.fromRGB(12, 16, 26)
+    introCard.BorderSizePixel = 0
+    introCard.ZIndex = 1001
+    introCard.Parent = intro
+
+    local introCorner = Instance.new("UICorner")
+    introCorner.CornerRadius = UDim.new(0, 18)
+    introCorner.Parent = introCard
+
+    local introTitle = Instance.new("TextLabel")
+    introTitle.BackgroundTransparency = 1
+    introTitle.Size = UDim2.new(1, 0, 0, 40)
+    introTitle.Position = UDim2.fromOffset(0, 25)
+    introTitle.Font = Enum.Font.SourceSansBold
+    introTitle.Text = "AKIRA SCRIPT"
+    introTitle.TextSize = 28
+    introTitle.TextColor3 = Color3.fromRGB(0, 175, 255)
+    introTitle.ZIndex = 1002
+    introTitle.Parent = introCard
+
+    local introStatus = Instance.new("TextLabel")
+    introStatus.BackgroundTransparency = 1
+    introStatus.Size = UDim2.new(1, 0, 0, 20)
+    introStatus.Position = UDim2.fromOffset(0, 75)
+    introStatus.Font = Enum.Font.SourceSansBold
+    introStatus.Text = "កំពុងរៀបចំប្រព័ន្ធ... សូមរង់ចាំ"
+    introStatus.TextSize = 14
+    introStatus.TextColor3 = Color3.fromRGB(180, 200, 225)
+    introStatus.ZIndex = 1002
+    introStatus.Parent = introCard
+
+    task.wait(1.4)
+    tween(intro, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {BackgroundTransparency = 1})
+    tween(introCard, TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {BackgroundTransparency = 1})
+    tween(introTitle, TweenInfo.new(0.25), {TextTransparency = 1})
+    tween(introStatus, TweenInfo.new(0.25), {TextTransparency = 1})
+    task.wait(0.38)
     intro:Destroy()
-    updateFloatingControls()
-    dragHandle.Visible = true
-    resizeHandle.Visible = true
-    task.wait(0.08)
-    showSupportNotification()
 end)
