@@ -1,14 +1,11 @@
 --[[
-    AKIRA SCRIPT HUB • MOBILE EDITION
-    Features:
-    - Small mobile-friendly GUI
-    - Anti-Hit system with proximity prompt trigger
-    - Config tab (GUI Size, Custom Themes)
-    - Touch & Mouse dragging (Dedicated drag bar)
-    - Touch & Mouse resize handle (↘)
-    - Smooth Tween Animations & Single-sound triggers
-    - Mobile Executor Safeguards (gethui / protect_gui)
-    - Floating Logo Button with Cambodia Akira Design
+    AKIRA SCRIPT HUB • កំណែទូរស័ព្ទ (MOBILE EDITION)
+    មុខងារពិសេសៗ៖
+    - Menu ភាសាខ្មែរ ងាយស្រួលប្រើលើទូរស័ព្ទដៃ
+    - ប្រព័ន្ធការពារការវាយប្រហារ (Anti-Hit) ដំណើរការតាម Proximity Prompt
+    - ផ្ទាំងកំណត់ (កែទំហំ GUI, ប្តូរពណ៌ Theme)
+    - ប៊ូតុងអូស និងពង្រីក/បង្រួម (Touch & Mouse)
+    - ប៊ូតុង Logo អណ្ដែតលើអេក្រង់
 ]]
 
 local Players = game:GetService("Players")
@@ -22,7 +19,7 @@ local Player = Players.LocalPlayer
 local PlayerGui = Player:WaitForChild("PlayerGui")
 local GuiParent = (gethui and gethui()) or (syn and syn.protect_gui and PlayerGui) or PlayerGui
 
--- Sound Setup
+-- ការកំណត់សម្លេង
 local AkiraSoundFolder = Instance.new("Folder")
 AkiraSoundFolder.Name = "AkiraSounds"
 AkiraSoundFolder.Parent = SoundService
@@ -53,11 +50,11 @@ if old then
 end
 
 local Themes = {
-    {Name = "Akira Red", Main = Color3.fromRGB(8, 16, 30), Panel = Color3.fromRGB(13, 27, 46), Accent = Color3.fromRGB(255, 72, 72), ButtonDark = Color3.fromRGB(95, 8, 18)},
-    {Name = "Akira Purple", Main = Color3.fromRGB(18, 17, 25), Panel = Color3.fromRGB(27, 24, 36), Accent = Color3.fromRGB(160, 100, 255), ButtonDark = Color3.fromRGB(72, 35, 120)},
-    {Name = "Akira Blue", Main = Color3.fromRGB(15, 19, 26), Panel = Color3.fromRGB(23, 29, 40), Accent = Color3.fromRGB(75, 145, 255), ButtonDark = Color3.fromRGB(18, 55, 105)},
-    {Name = "Akira Gold", Main = Color3.fromRGB(22, 20, 16), Panel = Color3.fromRGB(31, 28, 21), Accent = Color3.fromRGB(255, 190, 65), ButtonDark = Color3.fromRGB(105, 72, 12)},
-    {Name = "Akira Green", Main = Color3.fromRGB(15, 22, 19), Panel = Color3.fromRGB(22, 32, 27), Accent = Color3.fromRGB(75, 220, 135), ButtonDark = Color3.fromRGB(18, 92, 55)},
+    {Name = "ក្រហម អាគីរ៉ា", Main = Color3.fromRGB(8, 16, 30), Panel = Color3.fromRGB(13, 27, 46), Accent = Color3.fromRGB(255, 72, 72), ButtonDark = Color3.fromRGB(95, 8, 18)},
+    {Name = "ស្វាយ អាគីរ៉ា", Main = Color3.fromRGB(18, 17, 25), Panel = Color3.fromRGB(27, 24, 36), Accent = Color3.fromRGB(160, 100, 255), ButtonDark = Color3.fromRGB(72, 35, 120)},
+    {Name = "ខៀវ អាគីរ៉ា", Main = Color3.fromRGB(15, 19, 26), Panel = Color3.fromRGB(23, 29, 40), Accent = Color3.fromRGB(75, 145, 255), ButtonDark = Color3.fromRGB(18, 55, 105)},
+    {Name = "ទឹកមាស អាគីរ៉ា", Main = Color3.fromRGB(22, 20, 16), Panel = Color3.fromRGB(31, 28, 21), Accent = Color3.fromRGB(255, 190, 65), ButtonDark = Color3.fromRGB(105, 72, 12)},
+    {Name = "បៃតង អាគីរ៉ា", Main = Color3.fromRGB(15, 22, 19), Panel = Color3.fromRGB(22, 32, 27), Accent = Color3.fromRGB(75, 220, 135), ButtonDark = Color3.fromRGB(18, 92, 55)},
 }
 
 local ThemeIndex = 1
@@ -170,8 +167,8 @@ subtitle.BackgroundTransparency = 1
 subtitle.Position = UDim2.new(0, 58, 0, 29)
 subtitle.Size = UDim2.new(1, -116, 0, 16)
 subtitle.Font = Enum.Font.FredokaOne
-subtitle.Text = "MOBILE HUB"
-subtitle.TextSize = 10
+subtitle.Text = "ជំនាន់ទូរស័ព្ទដៃ"
+subtitle.TextSize = 11
 subtitle.TextXAlignment = Enum.TextXAlignment.Center
 subtitle.TextColor3 = Color3.fromRGB(145,145,155)
 subtitle.Parent = top
@@ -198,7 +195,7 @@ end
 local minimize = topButton("—", -52)
 local close = topButton("×", -8)
 
--- Floating Drag Line
+-- របារអូស GUI (Drag Bar)
 local dragHandle = Instance.new("TextButton")
 dragHandle.Name = "AkiraDragHandle"
 dragHandle.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -226,7 +223,7 @@ local dragVisualCorner = Instance.new("UICorner")
 dragVisualCorner.CornerRadius = UDim.new(1, 0)
 dragVisualCorner.Parent = dragVisual
 
--- Resize Handle
+-- ប៊ូតុងពង្រីក/បង្រួមទំហំ (Resize Handle)
 local resizeHandle = Instance.new("TextButton")
 resizeHandle.Name = "AkiraResizeHandle"
 resizeHandle.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -275,7 +272,7 @@ end
 local sidebar = Instance.new("Frame")
 sidebar.Name = "Sidebar"
 sidebar.Position = UDim2.fromOffset(8, 61)
-sidebar.Size = UDim2.new(0, 98, 1, -69)
+sidebar.Size = UDim2.new(0, 108, 1, -69)
 sidebar.BackgroundColor3 = Color3.fromRGB(13, 27, 46)
 sidebar.BorderSizePixel = 0
 sidebar.Parent = main
@@ -286,12 +283,12 @@ sideCorner.Parent = sidebar
 
 local content = Instance.new("Frame")
 content.Name = "Content"
-content.Position = UDim2.new(0, 114, 0, 61)
-content.Size = UDim2.new(1, -122, 1, -69)
+content.Position = UDim2.new(0, 122, 0, 61)
+content.Size = UDim2.new(1, -130, 1, -69)
 content.BackgroundTransparency = 1
 content.Parent = main
 
-local currentTab = "Scripts"
+local currentTab = "ស្គ្រីប"
 local pages = {}
 
 local function makePage(name)
@@ -305,7 +302,7 @@ local function makePage(name)
     page.CanvasSize = UDim2.new()
     page.AutomaticCanvasSize = Enum.AutomaticSize.Y
     page.ScrollingDirection = Enum.ScrollingDirection.Y
-    page.Visible = (name == "Scripts")
+    page.Visible = (name == "ស្គ្រីប")
     page.Parent = content
 
     local layout = Instance.new("UIListLayout")
@@ -322,8 +319,8 @@ local function makePage(name)
     return page
 end
 
-local scriptsPage = makePage("Scripts")
-local configPage = makePage("Config")
+local scriptsPage = makePage("ស្គ្រីប")
+local configPage = makePage("ការកំណត់")
 
 local tabButtons = {}
 local tabSweepTokens = {}
@@ -370,10 +367,10 @@ local function makeTab(text, icon)
     label.Size = UDim2.fromScale(1, 1)
     label.Text = icon .. "  " .. text
     label.Font = Enum.Font.FredokaOne
-    label.TextSize = 11
+    label.TextSize = 12
     label.TextColor3 = Color3.fromRGB(255,255,255)
     label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Position = UDim2.fromOffset(10, 0)
+    label.Position = UDim2.fromOffset(8, 0)
     label.ZIndex = b.ZIndex + 2
     label.Parent = b
 
@@ -381,8 +378,8 @@ local function makeTab(text, icon)
     return b
 end
 
-local scriptsTab = makeTab("Scripts", "🛡")
-local configTab = makeTab("Config", "⚙")
+local scriptsTab = makeTab("ស្គ្រីប", "🛡")
+local configTab = makeTab("ការកំណត់", "⚙")
 scriptsTab.Position = UDim2.fromOffset(6, 9)
 configTab.Position = UDim2.new(0, 6, 1, -52)
 
@@ -395,7 +392,7 @@ local function refreshTabs()
         if selected then
             b.BackgroundColor3 = Themes[ThemeIndex].Panel
             if sweepBg then sweepBg.Visible = true end
-            if tabLabel then tabLabel.TextColor3 = Color3.fromRGB(255,255,255); tabLabel.TextSize = 12 end
+            if tabLabel then tabLabel.TextColor3 = Color3.fromRGB(255,255,255); tabLabel.TextSize = 13 end
             tween(b, TweenInfo.new(0.16, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(1, -8, 0, 44)})
             if sweep then
                 tabSweepTokens[name] = (tabSweepTokens[name] or 0) + 1
@@ -412,7 +409,7 @@ local function refreshTabs()
             tabSweepTokens[name] = (tabSweepTokens[name] or 0) + 1
             if sweepBg then sweepBg.Visible = false end
             b.BackgroundColor3 = Themes[ThemeIndex].Panel
-            if tabLabel then tabLabel.TextColor3 = Color3.fromRGB(255,255,255); tabLabel.TextSize = 11 end
+            if tabLabel then tabLabel.TextColor3 = Color3.fromRGB(255,255,255); tabLabel.TextSize = 12 end
             tween(b, TweenInfo.new(0.12, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, -12, 0, 39)})
         end
     end
@@ -430,11 +427,11 @@ local function switchTab(tab)
     refreshTabs()
 end
 
-scriptsTab.Activated:Connect(function() AkiraPlayClick(); switchTab("Scripts") end)
-configTab.Activated:Connect(function() AkiraPlayClick(); switchTab("Config") end)
+scriptsTab.Activated:Connect(function() AkiraPlayClick(); switchTab("ស្គ្រីប") end)
+configTab.Activated:Connect(function() AkiraPlayClick(); switchTab("ការកំណត់") end)
 
 -- ============================================================
--- AKIRA ANTI-HIT FEATURE
+-- មុខងារ ANTI-HIT (ការពារការវាយប្រហារ)
 -- ============================================================
 local AntiHitEnabled = false
 local IsAntiHitRunning = false
@@ -470,9 +467,9 @@ local antiHitTitle = Instance.new("TextLabel")
 antiHitTitle.BackgroundTransparency = 1
 antiHitTitle.Position = UDim2.fromOffset(13, 5)
 antiHitTitle.Size = UDim2.new(1, -26, 0, 25)
-antiHitTitle.Text = "🛡  ANTI HIT"
+antiHitTitle.Text = "🛡  ការពារការវាយ (ANTI-HIT)"
 antiHitTitle.Font = Enum.Font.FredokaOne
-antiHitTitle.TextSize = 15
+antiHitTitle.TextSize = 14
 antiHitTitle.TextColor3 = Color3.new(1,1,1)
 antiHitTitle.TextXAlignment = Enum.TextXAlignment.Left
 antiHitTitle.ZIndex = antiHitCard.ZIndex + 2
@@ -482,9 +479,9 @@ local antiHitStatus = Instance.new("TextLabel")
 antiHitStatus.BackgroundTransparency = 1
 antiHitStatus.Position = UDim2.fromOffset(14, 31)
 antiHitStatus.Size = UDim2.new(1, -28, 0, 18)
-antiHitStatus.Text = "OFF"
+antiHitStatus.Text = "ស្ថានភាព៖ បិទ"
 antiHitStatus.Font = Enum.Font.FredokaOne
-antiHitStatus.TextSize = 10
+antiHitStatus.TextSize = 11
 antiHitStatus.TextColor3 = Color3.fromRGB(255, 170, 175)
 antiHitStatus.TextXAlignment = Enum.TextXAlignment.Left
 antiHitStatus.ZIndex = antiHitCard.ZIndex + 2
@@ -512,11 +509,11 @@ end
 
 local function setAntiHitVisual(enabled)
     if enabled then
-        antiHitStatus.Text = "ON"
+        antiHitStatus.Text = "ស្ថានភាព៖ បើកដំណើរការ"
         antiHitStatus.TextColor3 = Color3.fromRGB(110,255,145)
         antiHitCard.BackgroundColor3 = Color3.fromRGB(35,170,75)
     else
-        antiHitStatus.Text = "OFF"
+        antiHitStatus.Text = "ស្ថានភាព៖ បិទ"
         antiHitStatus.TextColor3 = Color3.fromRGB(255,170,175)
         antiHitCard.BackgroundColor3 = Color3.fromRGB(105,8,18)
     end
@@ -574,7 +571,7 @@ end)
 setAntiHitVisual(false)
 
 -- ============================================================
--- CONFIG TAB
+-- ផ្ទាំងកំណត់ (CONFIG TAB)
 -- ============================================================
 local function configLabel(text)
     local l = Instance.new("TextLabel")
@@ -606,7 +603,7 @@ local function configButton(text)
     return b
 end
 
-configLabel("GUI SIZE")
+configLabel("ទំហំផ្ទាំង MENU (GUI SIZE)")
 
 local sizeRow = Instance.new("Frame")
 sizeRow.Size = UDim2.new(1, -8, 0, 42)
@@ -618,7 +615,7 @@ sizeMinus.Parent = sizeRow
 sizeMinus.Position = UDim2.fromOffset(0,0)
 sizeMinus.Size = UDim2.new(0.31, -3, 1, 0)
 
-local sizeText = configButton("MEDIUM")
+local sizeText = configButton("មធ្យម")
 sizeText.Parent = sizeRow
 sizeText.Position = UDim2.new(0.31, 2, 0, 0)
 sizeText.Size = UDim2.new(0.38, -3, 1, 0)
@@ -628,7 +625,7 @@ sizePlus.Parent = sizeRow
 sizePlus.Position = UDim2.new(0.69, 2, 0, 0)
 sizePlus.Size = UDim2.new(0.31, -2, 1, 0)
 
-local sizeNames = {"SMALL", "MEDIUM", "LARGE"}
+local sizeNames = {"តូច", "មធ្យម", "ធំ"}
 
 local function setSize(index)
     SizeIndex = math.clamp(index, 1, #Sizes)
@@ -642,9 +639,9 @@ end
 sizeMinus.Activated:Connect(function() AkiraPlayClick(); setSize(SizeIndex - 1) end)
 sizePlus.Activated:Connect(function() AkiraPlayClick(); setSize(SizeIndex + 1) end)
 
-configLabel("COLOR")
+configLabel("ជម្រើសពណ៌ (THEME COLOR)")
 
-local colorButton = configButton("Choose Color • Akira Red")
+local colorButton = configButton("ជ្រើសរើសពណ៌ • ក្រហម អាគីរ៉ា")
 
 local colorPopup = Instance.new("Frame")
 colorPopup.Name = "ColorPicker"
@@ -659,20 +656,18 @@ colorGrid.CellPadding = UDim2.new(0.02, 0, 0, 6)
 colorGrid.SortOrder = Enum.SortOrder.LayoutOrder
 colorGrid.Parent = colorPopup
 
--- Forward declarations for notification objects
+-- Forward declarations
 local notification
 local notificationStroke
 local notificationBar
 local updateNotificationPosition
-
--- Open Button forward declaration
 local openButton
 local openStroke
 
 local function applyTheme(index)
     ThemeIndex = index
     local th = Themes[ThemeIndex]
-    colorButton.Text = "Choose Color • " .. th.Name
+    colorButton.Text = "ជ្រើសរើសពណ៌ • " .. th.Name
     tween(main, TweenInfo.new(0.2), {BackgroundColor3 = th.Main})
     tween(stroke, TweenInfo.new(0.2), {Color = th.Accent})
     dragVisual.BackgroundColor3 = th.Accent
@@ -742,12 +737,12 @@ colorButton.Activated:Connect(function()
     tween(colorPopup, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Size = UDim2.new(1, -8, 0, h)})
 end)
 
-configLabel("WINDOW")
-local closeInfo = configButton("Close / Reopen: × or Logo button")
+configLabel("ការគ្រប់គ្រងផ្ទាំង (WINDOW)")
+local closeInfo = configButton("បិទ ឬ បើកវិញ៖ ចុច × ឬ ចុចលើរូប Logo")
 closeInfo.TextColor3 = Color3.fromRGB(145,145,155)
 
 -- ============================================================
--- DRAGGING & RESIZING
+-- ការអូស និងពង្រីក GUI (DRAGGING & RESIZING)
 -- ============================================================
 local dragging = false
 local dragStart
@@ -859,7 +854,7 @@ UIS.InputEnded:Connect(function(input)
 end)
 
 -- ============================================================
--- FLOATING LOGO BUTTON
+-- ប៊ូតុង LOGO អណ្ដែត (FLOATING LOGO BUTTON)
 -- ============================================================
 local LOGO_IMAGE_ID = "rbxassetid://97330468088484"
 
@@ -1070,7 +1065,7 @@ end)
 refreshTabs()
 
 -- ======================================================
--- SUPPORT NOTIFICATION
+-- ផ្ទាំងដំណឹងស្វាគមន៍ (SUPPORT NOTIFICATION)
 -- ======================================================
 notification = Instance.new("Frame")
 notification.Name = "SupportNotification"
@@ -1110,7 +1105,7 @@ notificationText.BackgroundTransparency = 1
 notificationText.Position = UDim2.fromOffset(20, 0)
 notificationText.Size = UDim2.new(1, -30, 1, 0)
 notificationText.Font = Enum.Font.FredokaOne
-notificationText.Text = "Welcome to Akira Script Hub :)"
+notificationText.Text = "សូមស្វាគមន៍មកកាន់ Akira Script Hub :)"
 notificationText.TextSize = 12
 notificationText.TextColor3 = Color3.new(1,1,1)
 notificationText.TextTransparency = 1
@@ -1177,7 +1172,7 @@ local function showSupportNotification()
 end
 
 -- ======================================================
--- INTRO ANIMATION -> MAIN GUI
+-- ផ្ទាំង INTRO ចាប់ផ្តើមដំណើរការ (INTRO ANIMATION)
 -- ======================================================
 main.Visible = false
 shadow.Visible = false
@@ -1263,7 +1258,7 @@ introStatus.BackgroundTransparency = 1
 introStatus.Size = UDim2.new(1,-30,0,18)
 introStatus.Position = UDim2.fromOffset(15,91)
 introStatus.Font = Enum.Font.FredokaOne
-introStatus.Text = "AKIRA SCRIPT • INITIALIZING"
+introStatus.Text = "AKIRA SCRIPT • កំពុងដំណើរការ..."
 introStatus.TextSize = 10
 introStatus.TextColor3 = Color3.fromRGB(150,150,160)
 introStatus.ZIndex = 102
@@ -1311,7 +1306,7 @@ tween(introFill, TweenInfo.new(0.25), {BackgroundTransparency=0})
 tween(introFill, TweenInfo.new(2.6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {Size=UDim2.new(1,0,1,0)})
 
 task.wait(3.15)
-introStatus.Text = "AKIRA SCRIPT • READY"
+introStatus.Text = "AKIRA SCRIPT • រួចរាល់"
 task.wait(1.2)
 
 main.Visible = true
