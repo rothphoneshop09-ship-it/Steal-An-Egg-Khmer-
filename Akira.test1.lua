@@ -1260,13 +1260,13 @@ gcToggle.Activated:Connect(function()
 end)
 
 -- ============================================================
--- FEATURE 5: AUTO ESCAPE TO SAFE ZONE (100% UNIVERSAL MAP)
+-- FEATURE 5: AUTO ESCAPE TO REAL SAFE ZONE (100% GAME ACCURATE)
 -- ============================================================
 local AutoSafeZoneEnabled = false
 local IsRunningToSafeZone = false
 local CUSTOM_SAFE_ZONE = nil
 
--- Floating Quick Toggle Button
+-- 1. ប៊ូតុងអណ្ដែតលើអេក្រង់ (Floating Quick Toggle)
 local floatBtn = Instance.new("ImageButton")
 floatBtn.Name = "AutoRunFloatingToggle"
 floatBtn.Size = UDim2.fromOffset(48, 48)
@@ -1330,7 +1330,7 @@ UIS.InputChanged:Connect(function(input)
     end
 end)
 
--- Safe Zone Main Card (កម្ពស់ 95 ដើម្បីដាក់ប៊ូតុងកំណត់ Safe Zone)
+-- 2. Card ក្នុងផ្ទាំង Menu
 local safeZoneCard = Instance.new("Frame")
 safeZoneCard.Name = "SafeZoneCard"
 safeZoneCard.Size = UDim2.new(1, -10, 0, 95)
@@ -1417,7 +1417,7 @@ local szctbCorner = Instance.new("UICorner")
 szctbCorner.CornerRadius = UDim.new(1, 0)
 szctbCorner.Parent = szcThumb
 
--- ប៊ូតុងកំណត់ Safe Zone ដោយស្វ័យប្រវត្តិ
+-- ប៊ូតុងកំណត់ទីតាំងបន្ទាត់ Safe Zone ផ្ទាល់
 local setSafeBtn = Instance.new("TextButton")
 setSafeBtn.Name = "SetSafeZoneButton"
 setSafeBtn.Position = UDim2.fromOffset(10, 58)
@@ -1425,7 +1425,7 @@ setSafeBtn.Size = UDim2.new(1, -20, 0, 28)
 setSafeBtn.BackgroundColor3 = Color3.fromRGB(12, 26, 52)
 setSafeBtn.BorderSizePixel = 0
 setSafeBtn.Font = Enum.Font.FredokaOne
-setSafeBtn.Text = "📍 ចុចត្រង់នេះដើម្បីកំណត់ Safe Zone (SET SAFE ZONE)"
+setSafeBtn.Text = "📍 ឈរលើបន្ទាត់ SAFE ZONE រួចចុចត្រង់នេះ"
 setSafeBtn.TextSize = 10
 setSafeBtn.TextColor3 = Color3.fromRGB(0, 210, 255)
 setSafeBtn.AutoButtonColor = false
@@ -1446,7 +1446,7 @@ setSafeBtn.Activated:Connect(function()
     local root = char and char:FindFirstChild("HumanoidRootPart")
     if root then
         CUSTOM_SAFE_ZONE = root.Position
-        setSafeBtn.Text = "✅ បានកំណត់ Safe Zone ជោគជ័យ! (" .. math.floor(CUSTOM_SAFE_ZONE.X) .. ", " .. math.floor(CUSTOM_SAFE_ZONE.Z) .. ")"
+        setSafeBtn.Text = "✅ បានចំណាំបន្ទាត់ SAFE ZONE រួចរាល់!"
         setSafeBtn.TextColor3 = Color3.fromRGB(80, 255, 140)
     end
 end)
@@ -1506,8 +1506,8 @@ floatBtn.InputEnded:Connect(function(input)
     end
 end)
 
--- ពិនិត្យមើលវត្តមានប៊ូតុង "Drop" លើអេក្រង់គ្រប់ទម្រង់
-local function isDropButtonVisible()
+-- ឆែករកប៊ូតុង "Drop" ពណ៌ក្រហមលើអេក្រង់
+local function isDropButtonActive()
     for _, g in ipairs(PlayerGui:GetChildren()) do
         if g:IsA("ScreenGui") and g.Name ~= "AkiraScriptHub" and g.Enabled then
             for _, v in ipairs(g:GetDescendants()) do
@@ -1524,29 +1524,27 @@ local function isDropButtonVisible()
     return false
 end
 
--- ស្វែងរក Safe Zone (ផ្ដល់អាទិភាពលើចំណុចដែលបានកំណត់ដោយដៃ -> រកតាមឈ្មោះ Safe -> ចំណុចច្រកចេញ)
-local function getAccurateSafeZone(myPos)
+-- រកទីតាំងបន្ទាត់ Safe Zone ស្វ័យប្រវត្តិតាមអក្សរលើដី ឬ Part
+local function findAccurateSafeZone(myPos)
     if CUSTOM_SAFE_ZONE then
         return CUSTOM_SAFE_ZONE
     end
 
-    local targetPos = nil
-    local shortestDist = math.huge
-
+    -- រកមើល Part ឬ SurfaceGui ដែលមានពាក្យ Safe Zone លើដី
     for _, obj in ipairs(workspace:GetDescendants()) do
-        if obj:IsA("BasePart") and string.find(string.lower(obj.Name), "safe") then
-            local dist = (myPos - obj.Position).Magnitude
-            if dist < shortestDist then
-                shortestDist = dist
-                targetPos = obj.Position
+        if obj:IsA("TextLabel") and string.find(string.lower(obj.Text), "safe zone") then
+            local part = obj:FindFirstAncestorWhichIsA("BasePart")
+            if part then
+                return part.Position
             end
+        end
+        if obj:IsA("BasePart") and string.find(string.lower(obj.Name), "safe") then
+            return obj.Position
         end
     end
 
-    if not targetPos then
-        targetPos = Vector3.new(500.62, 70.28, -366.64)
-    end
-    return targetPos
+    -- កូអរដោនេបន្ទាត់ Safe Zone លំនាំដើម
+    return Vector3.new(500.62, 70.28, -366.64)
 end
 
 -- ស្វែងរកមេដែលកំពុងដេញ
@@ -1569,7 +1567,7 @@ local function getNearestMonster(myRoot)
     return monster, nearestDist
 end
 
--- ដំណើរការរត់គេចខ្លួនទៅ Safe Zone (បន្សាំល្បឿនមេ + ឈប់រត់ពេលពងធ្លាក់)
+-- ដំណើរការរត់ចូល Safe Zone
 local function RunToSafety(character)
     local humanoid = character:FindFirstChildOfClass("Humanoid")
     local root = character:FindFirstChild("HumanoidRootPart")
@@ -1579,12 +1577,12 @@ local function RunToSafety(character)
     szcStatus.Text = "ស្ថានភាព៖ កំពុងកាន់ Egg រត់ទៅ Safe Zone..."
     szcStatus.TextColor3 = Color3.fromRGB(0, 210, 255)
 
-    local targetSafeZone = getAccurateSafeZone(root.Position)
+    local targetSafeZone = findAccurateSafeZone(root.Position)
 
     task.spawn(function()
         while AutoSafeZoneEnabled and IsRunningToSafeZone and character.Parent do
-            -- ប្រសិនបើប៊ូតុង Drop បាត់ពីអេក្រង់ = ពងធ្លាក់ពីដៃ -> ឈប់រត់ភ្លាម!
-            if not isDropButtonVisible() then
+            -- បើចុច Drop ឬធ្លាក់ Egg (ប៊ូតុង Drop បាត់ពីអេក្រង់) -> ឈប់រត់ភ្លាម!
+            if not isDropButtonActive() then
                 humanoid.WalkSpeed = 16
                 humanoid:MoveTo(root.Position)
                 szcStatus.Text = "ស្ថានភាព៖ ពងធ្លាក់ពីដៃ (ឈប់រត់)"
@@ -1592,6 +1590,7 @@ local function RunToSafety(character)
                 break
             end
 
+            -- ដល់បន្ទាត់ Safe Zone
             local distToSafe = (root.Position - targetSafeZone).Magnitude
             if distToSafe <= 10 then
                 szcStatus.Text = "ស្ថានភាព៖ ដល់ Safe Zone សុវត្ថិភាពហើយ!"
@@ -1599,6 +1598,7 @@ local function RunToSafety(character)
                 break
             end
 
+            -- គណនាល្បឿនគេចមេ (លឿនជាងមេបន្តិច មិនឱ្យគេសង្ស័យ)
             local monster, mDist = getNearestMonster(root)
             local targetSpeed = 22
 
@@ -1624,27 +1624,12 @@ local function RunToSafety(character)
     end)
 end
 
--- ចាប់សញ្ញាឆ្លាតវៃតាម RenderStepped (ទាន់ចិត្ត ពេលប៊ូតុង Drop លោតឡើង)[span_4](start_span)[span_4](end_span)[span_5](start_span)[span_5](end_span)
+-- តាមដានវត្តមានប៊ូតុង Drop លើអេក្រង់ផ្ទាល់ (Realtime Frame Detection)
 RunService.RenderStepped:Connect(function()
     if AutoSafeZoneEnabled and not IsRunningToSafeZone then
         local char = Player.Character
-        if char and isDropButtonVisible() then
+        if char and isDropButtonActive() then
             RunToSafety(char)
-        end
-    end
-end)
-
--- ចាប់សញ្ញាបន្ថែមតាមរយៈ ProximityPrompt
-ProximityPromptService.PromptTriggered:Connect(function(prompt, p)
-    if p == Player and AutoSafeZoneEnabled and not IsRunningToSafeZone then
-        local pName = string.lower(prompt.ObjectText .. " " .. prompt.ActionText .. " " .. prompt.Name)
-        if string.find(pName, "egg") or string.find(pName, "steal") or string.find(pName, "take") or string.find(pName, "pick") then
-            local char = Player.Character
-            if char then
-                task.delay(0.1, function()
-                    RunToSafety(char)
-                end)
-            end
         end
     end
 end)
