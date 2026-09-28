@@ -1,8 +1,9 @@
 --[[
-    AKIRA SCRIPT HUB • ROLLBACK & FLOATING TOGGLE EDITION
-    - Product: BENZ
-    - Original Smooth Escape to Safe Zone
-    - Quick Floating Toggle on Screen
+    AKIRA SCRIPT HUB • 100% STEAL AN EGG MASTER EDITION
+    - Creator: BENZ
+    - Universal Map Safe Zone System
+    - Dual Trigger (Drop UI + Prompt)
+    - Anti-Fling & Assembly Speed Bypass
 ]]
 
 local Players = game:GetService("Players")
@@ -1088,12 +1089,13 @@ RunService.Heartbeat:Connect(function()
 end)
 
 -- ============================================================
--- FEATURE 4: GOD MODE (INVINCIBLE HITBOX)
+-- FEATURE 4: ANTI-KNOCKBACK & ANTI-FLING (វាយមិនប៉ើង / មិនដួល)
 -- ============================================================
-local GodModeEnabled = false
+local AntiKnockbackEnabled = false
+local antiFlingLoop = nil
 
 local godCard = Instance.new("Frame")
-godCard.Name = "GodCard"
+godCard.Name = "AntiKnockbackCard"
 godCard.Size = UDim2.new(1, -10, 0, 60)
 godCard.BackgroundColor3 = Color3.fromRGB(7, 16, 32)
 godCard.BorderSizePixel = 0
@@ -1135,7 +1137,7 @@ gcTitle.Position = UDim2.fromOffset(62, 11)
 gcTitle.Size = UDim2.new(1, -140, 0, 20)
 gcTitle.Font = Enum.Font.FredokaOne
 gcTitle.RichText = true
-gcTitle.Text = 'វាយមិនត្រូវ <font color="rgb(0, 210, 255)">(GOD MODE)</font>'
+gcTitle.Text = 'វាយមិនប៉ើង <font color="rgb(0, 210, 255)">(ANTI-FLING)</font>'
 gcTitle.TextSize = 13
 gcTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
 gcTitle.TextXAlignment = Enum.TextXAlignment.Left
@@ -1178,17 +1180,61 @@ local gctbCorner = Instance.new("UICorner")
 gctbCorner.CornerRadius = UDim.new(1, 0)
 gctbCorner.Parent = gcThumb
 
+local function applyAntiKnockback(character)
+    if not character then return end
+    local hum = character:FindFirstChildOfClass("Humanoid")
+    local root = character:FindFirstChild("HumanoidRootPart")
+    if not hum or not root then return end
+
+    hum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+    hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+    hum:SetStateEnabled(Enum.HumanoidStateType.PlatformStanding, false)
+    hum.PlatformStand = false
+
+    for _, child in ipairs(root:GetChildren()) do
+        if child:IsA("BodyVelocity") or child:IsA("BodyForce") or child:IsA("BodyThrust") or child:IsA("LinearVelocity") or child:IsA("VectorForce") then
+            child:Destroy()
+        end
+    end
+end
+
 gcToggle.Activated:Connect(function()
     AkiraPlayClick()
-    GodModeEnabled = not GodModeEnabled
+    AntiKnockbackEnabled = not AntiKnockbackEnabled
 
-    if GodModeEnabled then
+    if AntiKnockbackEnabled then
         gcStatus.Text = "ស្ថានភាព៖ បើកដំណើរការ"
         gcStatus.TextColor3 = Color3.fromRGB(80, 255, 140)
         tween(gcToggle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(0, 140, 255)})
         tween(gcThumb, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
             Position = UDim2.new(1, -21, 0.5, 0)
         })
+
+        if antiFlingLoop then antiFlingLoop:Disconnect() end
+        antiFlingLoop = RunService.Stepped:Connect(function()
+            if AntiKnockbackEnabled then
+                local char = Player.Character
+                if char then
+                    local root = char:FindFirstChild("HumanoidRootPart")
+                    local hum = char:FindFirstChildOfClass("Humanoid")
+                    if root and hum then
+                        applyAntiKnockback(char)
+
+                        if hum.MoveDirection.Magnitude == 0 then
+                            root.AssemblyLinearVelocity = Vector3.new(0, root.AssemblyLinearVelocity.Y, 0)
+                        else
+                            local maxWalk = hum.WalkSpeed + 5
+                            local currentHVel = Vector3.new(root.AssemblyLinearVelocity.X, 0, root.AssemblyLinearVelocity.Z)
+                            if currentHVel.Magnitude > maxWalk then
+                                local clampedVel = currentHVel.Unit * maxWalk
+                                root.AssemblyLinearVelocity = Vector3.new(clampedVel.X, root.AssemblyLinearVelocity.Y, clampedVel.Z)
+                            end
+                        end
+                        root.AssemblyAngularVelocity = Vector3.zero
+                    end
+                end
+            end
+        end)
     else
         gcStatus.Text = "ស្ថានភាព៖ បិទ"
         gcStatus.TextColor3 = Color3.fromRGB(130, 150, 180)
@@ -1196,35 +1242,31 @@ gcToggle.Activated:Connect(function()
         tween(gcThumb, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
             Position = UDim2.new(0, 3, 0.5, 0)
         })
-    end
-end)
 
-RunService.Stepped:Connect(function()
-    if GodModeEnabled then
+        if antiFlingLoop then
+            antiFlingLoop:Disconnect()
+            antiFlingLoop = nil
+        end
+
         local char = Player.Character
         if char then
             local hum = char:FindFirstChildOfClass("Humanoid")
             if hum then
-                hum:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
-                hum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
-                hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
-            end
-            for _, v in ipairs(char:GetChildren()) do
-                if v:IsA("BasePart") and v.Name ~= "HumanoidRootPart" then
-                    v.CanTouch = false
-                end
+                hum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, true)
+                hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, true)
             end
         end
     end
 end)
 
 -- ============================================================
--- FEATURE 5: AUTO RUN TO SAFE ZONE (ORIGINAL CODE + FLOATING TOGGLE)
+-- FEATURE 5: AUTO ESCAPE TO SAFE ZONE (100% UNIVERSAL MAP)
 -- ============================================================
 local AutoSafeZoneEnabled = false
 local IsRunningToSafeZone = false
+local CUSTOM_SAFE_ZONE = nil
 
--- 1. ប៊ូតុងអណ្ដែតលើអេក្រង់ (Floating Quick Toggle)
+-- Floating Quick Toggle Button
 local floatBtn = Instance.new("ImageButton")
 floatBtn.Name = "AutoRunFloatingToggle"
 floatBtn.Size = UDim2.fromOffset(48, 48)
@@ -1254,7 +1296,6 @@ fbIcon.Image = "rbxassetid://10734950309"
 fbIcon.ImageColor3 = Color3.fromRGB(0, 210, 255)
 fbIcon.Parent = floatBtn
 
--- Dragging សម្រាប់ប៊ូតុងអណ្ដែតលើអេក្រង់
 local fDragging = false
 local fDragStart = nil
 local fStartPos = nil
@@ -1289,10 +1330,10 @@ UIS.InputChanged:Connect(function(input)
     end
 end)
 
--- 2. Card ក្នុង Menu ស្គ្រីប
+-- Safe Zone Main Card (កម្ពស់ 95 ដើម្បីដាក់ប៊ូតុងកំណត់ Safe Zone)
 local safeZoneCard = Instance.new("Frame")
 safeZoneCard.Name = "SafeZoneCard"
-safeZoneCard.Size = UDim2.new(1, -10, 0, 60)
+safeZoneCard.Size = UDim2.new(1, -10, 0, 95)
 safeZoneCard.BackgroundColor3 = Color3.fromRGB(7, 16, 32)
 safeZoneCard.BorderSizePixel = 0
 safeZoneCard.Parent = scriptsPage
@@ -1351,8 +1392,8 @@ szcStatus.TextXAlignment = Enum.TextXAlignment.Left
 szcStatus.Parent = safeZoneCard
 
 local szcToggle = Instance.new("TextButton")
-szcToggle.AnchorPoint = Vector2.new(1, 0.5)
-szcToggle.Position = UDim2.new(1, -14, 0.5, 0)
+szcToggle.AnchorPoint = Vector2.new(1, 0)
+szcToggle.Position = UDim2.new(1, -14, 0, 15)
 szcToggle.Size = UDim2.fromOffset(48, 24)
 szcToggle.BackgroundColor3 = Color3.fromRGB(24, 40, 68)
 szcToggle.BorderSizePixel = 0
@@ -1376,7 +1417,40 @@ local szctbCorner = Instance.new("UICorner")
 szctbCorner.CornerRadius = UDim.new(1, 0)
 szctbCorner.Parent = szcThumb
 
--- អនុវត្តបើក/បិទ ទាំងលើ Menu និងលើប៊ូតុងអណ្ដែត
+-- ប៊ូតុងកំណត់ Safe Zone ដោយស្វ័យប្រវត្តិ
+local setSafeBtn = Instance.new("TextButton")
+setSafeBtn.Name = "SetSafeZoneButton"
+setSafeBtn.Position = UDim2.fromOffset(10, 58)
+setSafeBtn.Size = UDim2.new(1, -20, 0, 28)
+setSafeBtn.BackgroundColor3 = Color3.fromRGB(12, 26, 52)
+setSafeBtn.BorderSizePixel = 0
+setSafeBtn.Font = Enum.Font.FredokaOne
+setSafeBtn.Text = "📍 ចុចត្រង់នេះដើម្បីកំណត់ Safe Zone (SET SAFE ZONE)"
+setSafeBtn.TextSize = 10
+setSafeBtn.TextColor3 = Color3.fromRGB(0, 210, 255)
+setSafeBtn.AutoButtonColor = false
+setSafeBtn.Parent = safeZoneCard
+
+local ssbCorner = Instance.new("UICorner")
+ssbCorner.CornerRadius = UDim.new(0, 8)
+ssbCorner.Parent = setSafeBtn
+
+local ssbStroke = Instance.new("UIStroke")
+ssbStroke.Color = Color3.fromRGB(0, 140, 255)
+ssbStroke.Transparency = 0.5
+ssbStroke.Parent = setSafeBtn
+
+setSafeBtn.Activated:Connect(function()
+    AkiraPlayClick()
+    local char = Player.Character
+    local root = char and char:FindFirstChild("HumanoidRootPart")
+    if root then
+        CUSTOM_SAFE_ZONE = root.Position
+        setSafeBtn.Text = "✅ បានកំណត់ Safe Zone ជោគជ័យ! (" .. math.floor(CUSTOM_SAFE_ZONE.X) .. ", " .. math.floor(CUSTOM_SAFE_ZONE.Z) .. ")"
+        setSafeBtn.TextColor3 = Color3.fromRGB(80, 255, 140)
+    end
+end)
+
 local function setAutoSafeZoneState(enabled)
     AutoSafeZoneEnabled = enabled
 
@@ -1385,7 +1459,7 @@ local function setAutoSafeZoneState(enabled)
         fbStroke.Color = Color3.fromRGB(0, 210, 255)
         fbIcon.ImageColor3 = Color3.fromRGB(0, 210, 255)
 
-        szcStatus.Text = "ស្ថានភាព៖ រង់ចាំរើស Egg"
+        szcStatus.Text = "ស្ថានភាព៖ រង់ចាំលួច Egg"
         szcStatus.TextColor3 = Color3.fromRGB(80, 255, 140)
         tween(szcToggle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(0, 140, 255)})
         tween(szcThumb, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
@@ -1408,12 +1482,10 @@ szcToggle.Activated:Connect(function()
     setAutoSafeZoneState(not AutoSafeZoneEnabled)
 end)
 
--- ចុចបិទបើកលើប៊ូតុងអណ្ដែតលើអេក្រង់ផ្ទាល់
 floatBtn.InputEnded:Connect(function(input)
     if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and not fMoved then
         AkiraPlayClick()
         if AutoSafeZoneEnabled then
-            -- Pause បណ្ដោះអាសន្ន
             AutoSafeZoneEnabled = false
             IsRunningToSafeZone = false
             fbStroke.Color = Color3.fromRGB(255, 60, 60)
@@ -1423,11 +1495,10 @@ floatBtn.InputEnded:Connect(function(input)
             tween(szcToggle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(24, 40, 68)})
             tween(szcThumb, TweenInfo.new(0.2), {Position = UDim2.new(0, 3, 0.5, 0)})
         else
-            -- បើកឡើងវិញ
             AutoSafeZoneEnabled = true
             fbStroke.Color = Color3.fromRGB(0, 210, 255)
             fbIcon.ImageColor3 = Color3.fromRGB(0, 210, 255)
-            szcStatus.Text = "ស្ថានភាព៖ រង់ចាំរើស Egg"
+            szcStatus.Text = "ស្ថានភាព៖ រង់ចាំលួច Egg"
             szcStatus.TextColor3 = Color3.fromRGB(80, 255, 140)
             tween(szcToggle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(0, 140, 255)})
             tween(szcThumb, TweenInfo.new(0.2), {Position = UDim2.new(1, -21, 0.5, 0)})
@@ -1435,8 +1506,30 @@ floatBtn.InputEnded:Connect(function(input)
     end
 end)
 
--- ស្វែងរកទីតាំង Safe Zone ដែលនៅជិតបំផុត (តាមកូដដើម)
-local function getNearestSafeZone(myPos)
+-- ពិនិត្យមើលវត្តមានប៊ូតុង "Drop" លើអេក្រង់គ្រប់ទម្រង់
+local function isDropButtonVisible()
+    for _, g in ipairs(PlayerGui:GetChildren()) do
+        if g:IsA("ScreenGui") and g.Name ~= "AkiraScriptHub" and g.Enabled then
+            for _, v in ipairs(g:GetDescendants()) do
+                if v:IsA("GuiObject") and v.Visible then
+                    local nameMatch = string.find(string.lower(v.Name), "drop")
+                    local textMatch = (v:IsA("TextLabel") or v:IsA("TextButton")) and string.find(string.lower(v.Text), "drop")
+                    if nameMatch or textMatch then
+                        return true
+                    end
+                end
+            end
+        end
+    end
+    return false
+end
+
+-- ស្វែងរក Safe Zone (ផ្ដល់អាទិភាពលើចំណុចដែលបានកំណត់ដោយដៃ -> រកតាមឈ្មោះ Safe -> ចំណុចច្រកចេញ)
+local function getAccurateSafeZone(myPos)
+    if CUSTOM_SAFE_ZONE then
+        return CUSTOM_SAFE_ZONE
+    end
+
     local targetPos = nil
     local shortestDist = math.huge
 
@@ -1453,15 +1546,13 @@ local function getNearestSafeZone(myPos)
     if not targetPos then
         targetPos = Vector3.new(500.62, 70.28, -366.64)
     end
-
     return targetPos
 end
 
--- ស្វែងរកមេដែលកំពុងដេញ (តាមកូដដើម)
-local function getNearestChaser(myRoot)
+-- ស្វែងរកមេដែលកំពុងដេញ
+local function getNearestMonster(myRoot)
     local nearestDist = math.huge
     local monster = nil
-    
     for _, model in ipairs(workspace:GetChildren()) do
         if model:IsA("Model") and model ~= Player.Character then
             local hum = model:FindFirstChildOfClass("Humanoid")
@@ -1478,26 +1569,37 @@ local function getNearestChaser(myRoot)
     return monster, nearestDist
 end
 
--- ដំណើរការរត់ចូល Safe Zone (តាមកូដដើម)
+-- ដំណើរការរត់គេចខ្លួនទៅ Safe Zone (បន្សាំល្បឿនមេ + ឈប់រត់ពេលពងធ្លាក់)
 local function RunToSafety(character)
     local humanoid = character:FindFirstChildOfClass("Humanoid")
     local root = character:FindFirstChild("HumanoidRootPart")
     if not humanoid or not root or IsRunningToSafeZone then return end
 
     IsRunningToSafeZone = true
-    szcStatus.Text = "ស្ថានភាព៖ កំពុងរត់គេចចូល Safe Zone..."
+    szcStatus.Text = "ស្ថានភាព៖ កំពុងកាន់ Egg រត់ទៅ Safe Zone..."
     szcStatus.TextColor3 = Color3.fromRGB(0, 210, 255)
 
-    local targetSafeZone = getNearestSafeZone(root.Position)
+    local targetSafeZone = getAccurateSafeZone(root.Position)
 
     task.spawn(function()
         while AutoSafeZoneEnabled and IsRunningToSafeZone and character.Parent do
-            local distToSafe = (root.Position - targetSafeZone).Magnitude
-            if distToSafe <= 10 then
+            -- ប្រសិនបើប៊ូតុង Drop បាត់ពីអេក្រង់ = ពងធ្លាក់ពីដៃ -> ឈប់រត់ភ្លាម!
+            if not isDropButtonVisible() then
+                humanoid.WalkSpeed = 16
+                humanoid:MoveTo(root.Position)
+                szcStatus.Text = "ស្ថានភាព៖ ពងធ្លាក់ពីដៃ (ឈប់រត់)"
+                szcStatus.TextColor3 = Color3.fromRGB(255, 120, 120)
                 break
             end
 
-            local monster, mDist = getNearestChaser(root)
+            local distToSafe = (root.Position - targetSafeZone).Magnitude
+            if distToSafe <= 10 then
+                szcStatus.Text = "ស្ថានភាព៖ ដល់ Safe Zone សុវត្ថិភាពហើយ!"
+                szcStatus.TextColor3 = Color3.fromRGB(80, 255, 140)
+                break
+            end
+
+            local monster, mDist = getNearestMonster(root)
             local targetSpeed = 22
 
             if monster and mDist < 35 then
@@ -1514,25 +1616,32 @@ local function RunToSafety(character)
 
         humanoid.WalkSpeed = 16
         IsRunningToSafeZone = false
+        task.wait(2)
         if AutoSafeZoneEnabled then
-            szcStatus.Text = "ស្ថានភាព៖ ដល់ Safe Zone សុវត្ថិភាពហើយ!"
+            szcStatus.Text = "ស្ថានភាព៖ រង់ចាំលួច Egg"
             szcStatus.TextColor3 = Color3.fromRGB(80, 255, 140)
-            task.wait(2)
-            if AutoSafeZoneEnabled then
-                szcStatus.Text = "ស្ថានភាព៖ រង់ចាំរើស Egg"
-            end
         end
     end)
 end
 
--- ចាប់សញ្ញាពេលរើសពងមាន់តាមរយៈ ProximityPrompt (តាមកូដដើម)
+-- ចាប់សញ្ញាឆ្លាតវៃតាម RenderStepped (ទាន់ចិត្ត ពេលប៊ូតុង Drop លោតឡើង)[span_4](start_span)[span_4](end_span)[span_5](start_span)[span_5](end_span)
+RunService.RenderStepped:Connect(function()
+    if AutoSafeZoneEnabled and not IsRunningToSafeZone then
+        local char = Player.Character
+        if char and isDropButtonVisible() then
+            RunToSafety(char)
+        end
+    end
+end)
+
+-- ចាប់សញ្ញាបន្ថែមតាមរយៈ ProximityPrompt
 ProximityPromptService.PromptTriggered:Connect(function(prompt, p)
     if p == Player and AutoSafeZoneEnabled and not IsRunningToSafeZone then
         local pName = string.lower(prompt.ObjectText .. " " .. prompt.ActionText .. " " .. prompt.Name)
         if string.find(pName, "egg") or string.find(pName, "steal") or string.find(pName, "take") or string.find(pName, "pick") then
             local char = Player.Character
             if char then
-                task.delay(0.08, function()
+                task.delay(0.1, function()
                     RunToSafety(char)
                 end)
             end
