@@ -156,8 +156,10 @@ local function v26(p1)
 
     return v328
 end
-t1.LogoFile = "Kira" .. "/logo.png"
-t1.LogoFileLight = "Kira" .. "/logo-light.png"
+            local function v78(p4)
+                return "rbxassetid://133358387881040"
+            end
+
 local n1 = 620
 local n2 = 430
 local n3 = 152
