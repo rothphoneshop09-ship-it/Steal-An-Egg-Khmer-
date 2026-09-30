@@ -1,8 +1,8 @@
 --[[
-    AKIRA SCRIPT HUB • FULL FIX MASTER EDITION
+    AKIRA SCRIPT HUB • FULL FIX MASTER EDITION (STABLE)
     - Product: BENZ
-    - All-in-One Integrated Script + ESP + Full Auto Steal
-    - Smooth Physics, Smart Egg Escape & Full Optimizations
+    - All-in-One Integrated Script + ESP + Auto Steal
+    - Fixed Yielding Bugs & Safe Execution
 ]]
 
 local Players = game:GetService("Players")
@@ -1334,20 +1334,23 @@ szcToggle.Activated:Connect(function()
 end)
 
 local function isDropButtonVisible()
-    for _, g in ipairs(PlayerGui:GetChildren()) do
-        if g:IsA("ScreenGui") and g.Name ~= "AkiraScriptHub" and g.Enabled then
-            for _, v in ipairs(g:GetDescendants()) do
-                if v:IsA("GuiObject") and v.Visible then
-                    local nameMatch = string.find(string.lower(v.Name), "drop")
-                    local textMatch = (v:IsA("TextLabel") or v:IsA("TextButton")) and string.find(string.lower(v.Text), "drop")
-                    if nameMatch or textMatch then
-                        return true
+    local ok, res = pcall(function()
+        for _, g in ipairs(PlayerGui:GetChildren()) do
+            if g:IsA("ScreenGui") and g.Name ~= "AkiraScriptHub" and g.Enabled then
+                for _, v in ipairs(g:GetDescendants()) do
+                    if v:IsA("GuiObject") and v.Visible then
+                        local nameMatch = string.find(string.lower(v.Name), "drop")
+                        local textMatch = (v:IsA("TextLabel") or v:IsA("TextButton")) and string.find(string.lower(v.Text), "drop")
+                        if nameMatch or textMatch then
+                            return true
+                        end
                     end
                 end
             end
         end
-    end
-    return false
+        return false
+    end)
+    return ok and res or false
 end
 
 local function getNearestMonster(myRoot)
@@ -1434,7 +1437,7 @@ task.spawn(function()
 end)
 
 -- ============================================================
--- FEATURE 6: ESP & VISUALS (MONSTERS & EGGS)
+-- FEATURE 6: ESP & VISUALS
 -- ============================================================
 local ESPEnabled = false
 local activeESP = {}
@@ -1660,11 +1663,11 @@ task.spawn(function()
 end)
 
 -- ============================================================
--- FEATURE 7: AUTO STEAL SYSTEM (FROM SOURCE)
+-- FEATURE 7: AUTO STEAL SYSTEM
 -- ============================================================
 local StealConfig = {
     Enabled = false,
-    TravelSpeed = 300,
+    TravelSpeed = 250,
     Mode = "Best value"
 }
 
@@ -1759,7 +1762,7 @@ stcToggle.Activated:Connect(function()
     StealConfig.Enabled = not StealConfig.Enabled
 
     if StealConfig.Enabled then
-        stcStatus.Text = "ស្ថានភាព៖ កំពុងដំណើរការ..."
+        stcStatus.Text = "ស្ថានភាព៖ កំពុងស្វែងរកពង..."
         stcStatus.TextColor3 = Color3.fromRGB(80, 255, 140)
         tween(stcToggle, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(0, 140, 255)})
         tween(stcThumb, TweenInfo.new(0.2, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
@@ -1775,22 +1778,28 @@ stcToggle.Activated:Connect(function()
     end
 end)
 
-local EggStateModule
-pcall(function()
-    EggStateModule = require(ReplicatedStorage:WaitForChild("Client"):WaitForChild("EggState"))[span_1](start_span)[span_1](end_span)
+local EggStateModule = nil
+task.spawn(function()
+    pcall(function()
+        local clientFolder = ReplicatedStorage:FindFirstChild("Client")
+        local eggState = clientFolder and clientFolder:FindFirstChild("EggState")
+        if eggState then
+            EggStateModule = require(eggState)
+        end
+    end)
 end)
 
 local function getStealPrompt()
-    local promptPart = workspace:FindFirstChild("SmartPromptPart")[span_2](start_span)[span_2](end_span)
-    local prompt = promptPart and promptPart:FindFirstChild("CarryAreaEgg")[span_3](start_span)[span_3](end_span)
+    local promptPart = workspace:FindFirstChild("SmartPromptPart")
+    local prompt = promptPart and promptPart:FindFirstChild("CarryAreaEgg")
     if prompt and prompt:IsA("ProximityPrompt") then
-        prompt.HoldDuration = 0[span_4](start_span)[span_4](end_span)
-        prompt.RequiresLineOfSight = false[span_5](start_span)[span_5](end_span)
+        prompt.HoldDuration = 0
+        prompt.RequiresLineOfSight = false
         return prompt
     end
     for _, v in ipairs(workspace:GetDescendants()) do
-        if v:IsA("ProximityPrompt") and (v.Name == "CarryAreaEgg" or string.find(string.lower(v.ActionText), "steal")) then[span_6](start_span)[span_6](end_span)
-            v.HoldDuration = 0[span_7](start_span)[span_7](end_span)
+        if v:IsA("ProximityPrompt") and (v.Name == "CarryAreaEgg" or string.find(string.lower(v.ActionText), "steal")) then
+            v.HoldDuration = 0
             return v
         end
     end
@@ -1800,36 +1809,36 @@ end
 local function triggerStealPrompt(prompt)
     if not prompt then return end
     if fireproximityprompt then
-        fireproximityprompt(prompt, 0)[span_8](start_span)[span_8](end_span)
+        fireproximityprompt(prompt, 0)
     else
-        prompt:InputHoldBegin()[span_9](start_span)[span_9](end_span)
+        prompt:InputHoldBegin()
         task.wait(0.05)
-        prompt:InputHoldEnd()[span_10](start_span)[span_10](end_span)
+        prompt:InputHoldEnd()
     end
 end
 
 local function getPlotSafePosition()
-    local spawnLoc = workspace:FindFirstChildOfClass("SpawnLocation")[span_11](start_span)[span_11](end_span)
+    local spawnLoc = workspace:FindFirstChildOfClass("SpawnLocation")
     if spawnLoc then
-        return spawnLoc.Position + Vector3.new(0, 4, 0)[span_12](start_span)[span_12](end_span)
+        return spawnLoc.Position + Vector3.new(0, 4, 0)
     end
     
-    local plots = workspace:FindFirstChild("Plots")[span_13](start_span)[span_13](end_span)
+    local plots = workspace:FindFirstChild("Plots")
     if plots then
-        for _, plot in ipairs(plots:GetChildren()) do[span_14](start_span)[span_14](end_span)
+        for _, plot in ipairs(plots:GetChildren()) do
             local isMyPlot = false
-            for _, desc in ipairs(plot:GetDescendants()) do[span_15](start_span)[span_15](end_span)
-                if desc:IsA("TextLabel") and string.find(desc.Text, Player.Name) then[span_16](start_span)[span_16](end_span)
+            for _, desc in ipairs(plot:GetDescendants()) do
+                if desc:IsA("TextLabel") and string.find(desc.Text, Player.Name) then
                     isMyPlot = true
                     break
                 end
             end
             if isMyPlot then
-                local spawnPoint = plot:FindFirstChild("SpawnPoint", true)[span_17](start_span)[span_17](end_span)
-                if spawnPoint and spawnPoint:IsA("BasePart") then[span_18](start_span)[span_18](end_span)
-                    return spawnPoint.Position + Vector3.new(0, 4, 0)[span_19](start_span)[span_19](end_span)
+                local spawnPoint = plot:FindFirstChild("SpawnPoint", true)
+                if spawnPoint and spawnPoint:IsA("BasePart") then
+                    return spawnPoint.Position + Vector3.new(0, 4, 0)
                 end
-                return plot:GetPivot().Position[span_20](start_span)[span_20](end_span)
+                return plot:GetPivot().Position
             end
         end
     end
@@ -1837,34 +1846,56 @@ local function getPlotSafePosition()
 end
 
 local function getBestEggToSteal()
-    if not EggStateModule or type(EggStateModule.ReadFieldEggs) ~= "function" then[span_21](start_span)[span_21](end_span)
-        return nil
-    end
+    -- 1. ស្វែងរកតាមរយៈ Module បើមាន
+    if EggStateModule and type(EggStateModule.ReadFieldEggs) == "function" then
+        local success, eggData = pcall(EggStateModule.ReadFieldEggs)
+        if success and type(eggData) == "table" and eggData.Records then
+            local targetEgg = nil
+            local highestEarn = -1
 
-    local success, eggData = pcall(EggStateModule.ReadFieldEggs)[span_22](start_span)[span_22](end_span)
-    if not success or type(eggData) ~= "table" or not eggData.Records then[span_23](start_span)[span_23](end_span)
-        return nil
-    end
+            for _, egg in pairs(eggData.Records) do
+                if egg.State == "Slot" or egg.State == "Dropped" then
+                    if not egg.CarrierUserId or egg.CarrierUserId == 0 or egg.CarrierUserId == Player.UserId then
+                        local eggPos = egg.BottomCFrame or egg.BoundsCFrame or egg.CFrame
+                        if typeof(eggPos) == "CFrame" then
+                            eggPos = eggPos.Position
+                        end
 
-    local targetEgg = nil
-    local highestEarn = -1
-
-    for _, egg in pairs(eggData.Records) do[span_24](start_span)[span_24](end_span)
-        if egg.State == "Slot" or egg.State == "Dropped" then[span_25](start_span)[span_25](end_span)
-            if not egg.CarrierUserId or egg.CarrierUserId == 0 or egg.CarrierUserId == Player.UserId then[span_26](start_span)[span_26](end_span)
-                local eggPos = egg.BottomCFrame or egg.BoundsCFrame or egg.CFrame[span_27](start_span)[span_27](end_span)
-                if typeof(eggPos) == "CFrame" then
-                    eggPos = eggPos.Position[span_28](start_span)[span_28](end_span)
+                        if eggPos then
+                            local earnRate = tonumber(egg.MoneyPerSecond) or 1
+                            if earnRate > highestEarn then
+                                highestEarn = earnRate
+                                targetEgg = {
+                                    Position = eggPos,
+                                    Earn = earnRate
+                                }
+                            end
+                        end
+                    end
                 end
+            end
+            if targetEgg then return targetEgg end
+        end
+    end
 
-                if eggPos then
-                    local earnRate = tonumber(egg.MoneyPerSecond) or 1[span_29](start_span)[span_29](end_span)
-                    if earnRate > highestEarn then
-                        highestEarn = earnRate
-                        targetEgg = {
-                            Record = egg,
-                            Position = eggPos,
-                            Earn = earnRate
+    -- 2. Fallback: ស្វែងរកផ្ទាល់លើ Workspace បើ Module អានមិនចេញ
+    local bestObj = nil
+    local myChar = Player.Character
+    local myRoot = myChar and myChar:FindFirstChild("HumanoidRootPart")
+    local closestDist = math.huge
+
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if (obj:IsA("Model") or obj:IsA("BasePart")) and string.find(string.lower(obj.Name), "egg") then
+            if not obj:IsDescendantOf(myChar) then
+                local prompt = obj:FindFirstChildWhichIsA("ProximityPrompt", true)
+                local part = obj:IsA("BasePart") and obj or obj:FindFirstChildWhichIsA("BasePart")
+                if part and myRoot then
+                    local d = (myRoot.Position - part.Position).Magnitude
+                    if d < closestDist then
+                        closestDist = d
+                        bestObj = {
+                            Position = part.Position,
+                            Earn = 1
                         }
                     end
                 end
@@ -1872,13 +1903,13 @@ local function getBestEggToSteal()
         end
     end
 
-    return targetEgg
+    return bestObj
 end
 
 local autoStealTarget = nil
 task.spawn(function()
     while true do
-        task.wait(0.1)
+        task.wait(0.15)
         if StealConfig.Enabled then
             local char = Player.Character
             local root = char and char:FindFirstChild("HumanoidRootPart")
@@ -1895,9 +1926,9 @@ task.spawn(function()
                     if autoStealTarget and autoStealTarget.Position then
                         stcStatus.Text = "ស្ថានភាព៖ រត់ទៅយកពង..."
                         local moveDir = (autoStealTarget.Position - root.Position)
-                        local dist = moveDir.Magnitude
+                        local dist = Vector3.new(moveDir.X, 0, moveDir.Z).Magnitude
 
-                        if dist > 4 then
+                        if dist > 5 then
                             local targetVel = Vector3.new(moveDir.X, 0, moveDir.Z).Unit * StealConfig.TravelSpeed
                             root.AssemblyLinearVelocity = Vector3.new(targetVel.X, root.AssemblyLinearVelocity.Y, targetVel.Z)
                         else
@@ -1905,11 +1936,11 @@ task.spawn(function()
                             if prompt then
                                 triggerStealPrompt(prompt)
                             end
-                            task.wait(0.2)
+                            task.wait(0.3)
                             autoStealTarget = nil
                         end
                     else
-                        stcStatus.Text = "ស្ថានភាព៖ គ្មានពងត្រូវលួច"
+                        stcStatus.Text = "ស្ថានភាព៖ គ្មានពងនៅលើ Map"
                     end
                 else
                     stcStatus.Text = "ស្ថានភាព៖ កំពុងយកពងទៅដី..."
